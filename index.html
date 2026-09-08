@@ -630,7 +630,7 @@
             let val = snapshot.val();
             if (!val) {
                 // Initialize default admin if no users exist
-                users = [{ username: 'chanuka', password: '12345', role: 'admin' }];
+                users = [{ username: 'Pramod', password: '12345', role: 'admin' }];
                 db.ref('users').set(users);
             } else {
                 users = val;
