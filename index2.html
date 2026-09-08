@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Inventory & Sales System - Multi-User</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+
+        /* Login Overlay Screen */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeInContainer 0.5s ease-out;
+        }
+
+        /* Low Stock Floating Popup Banner */
+        #lowStockBanner {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 90%;
+            max-width: 650px;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-left: 6px solid #f59e0b;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            animation: fadeInContainer 0.6s ease-out;
+        }
+
+        @keyframes fadeInContainer {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Tab Navigation */
+        .tab {
+            display: flex;
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab button {
+            background-color: transparent;
+            flex: 1;
+            min-width: 160px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 16px 15px;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab button:hover {
+            color: var(--primary);
+            background-color: rgba(79, 70, 229, 0.04);
+        }
+
+        .tab button.active {
+            color: var(--primary);
+            background-color: white;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 35px;
+            animation: fadeInTab 0.4s ease-in-out;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h2 {
+            color: var(--text-main);
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .color-input-box {
+            width: 50px;
+            height: 46px;
+            padding: 2px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-chip {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #cbd5e1;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .color-chip:hover {
+            transform: scale(1.2);
+        }
+
+        button[type="submit"], .btn-action {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        button[type="submit"]:hover, .btn-action:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            background: white;
+        }
+
+        th, td {
+            padding: 14px 18px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        tr:not(:last-child) td {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .btn-edit, .btn-save, .btn-cancel, .btn-delete {
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-edit { background-color: #fef3c7; color: #d97706; }
+        .btn-edit:hover { background-color: #fde68a; }
+
+        .btn-delete { background-color: #fee2e2; color: #dc2626; margin-left: 6px; }
+        .btn-delete:hover { background-color: #fecaca; }
+
+        .btn-save { background-color: #d1fae5; color: #059669; }
+        .btn-save:hover { background-color: #a7f3d0; }
+
+        .btn-cancel { background-color: #f1f5f9; color: #475569; margin-left: 6px; border: 1px solid var(--border-color); }
+        .btn-cancel:hover { background-color: #e2e8f0; }
+
+        .inline-input {
+            padding: 6px 10px !important;
+            font-size: 13px !important;
+            border-radius: 6px !important;
+        }
+
+        #printableReport {
+            display: none;
+            background: #ffffff;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printableReport, #printableReport * { visibility: visible; }
+            #printableReport {
+                display: block !important;
+                position: absolute;
+                left: 0; top: 0; width: 100%;
+                background: white; padding: 10px;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Overlay Screen -->
+<div id="loginOverlay">
+    <div class="login-card">
+        <h2 style="margin-bottom: 25px; color: #1e293b; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; text-align: center;">System Login</h2>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" required placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" required placeholder="Enter password">
+            </div>
+            <p id="loginError" style="color: #ef4444; font-size: 13px; margin-bottom: 15px; display: none; font-weight: 500; text-align: left;"></p>
+            <button type="submit">Login to System</button>
+        </form>
+    </div>
+</div>
+
+<!-- Low Stock Popup Warning Banner -->
+<div id="lowStockBanner">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 22px; line-height: 1;">⚠️</span>
+            <div>
+                <h4 style="margin: 0 0 4px 0; color: #b45309; font-size: 15px; font-weight: 700;">Low Stock Warning! (Quantity ≤ 10)</h4>
+                <p id="lowStockMessage" style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.4;"></p>
+            </div>
+        </div>
+        <button onclick="dismissLowStockAlert()" style="background: rgba(245, 158, 11, 0.15); border: none; font-size: 16px; color: #92400e; cursor: pointer; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Dismiss">&times;</button>
+    </div>
+</div>
+
+<div class="container" id="mainSystemContainer" style="display: none;">
+    <header class="no-print">
+        <div>
+            <h1>Inventory & Sales Management System</h1>
+            <p id="loggedUserInfo" style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.85;"></p>
+        </div>
+        <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">Logout</button>
+    </header>
+
+    <!-- Tab Navigation links -->
+    <div class="tab no-print" id="tabNavContainer">
+        <button class="tablinks active" onclick="openTab(event, 'AddProductTab')">📦 Add Product</button>
+        <button class="tablinks" onclick="openTab(event, 'RecordSaleTab')">🛒 Record Sale</button>
+        <button class="tablinks" onclick="openTab(event, 'RemainingStockTab')">📋 Stock</button>
+        <button class="tablinks" onclick="openTab(event, 'SalesReportTab')">📊 Reports</button>
+        <button class="tablinks" id="userTabBtn" onclick="openTab(event, 'UserManagementTab')" style="display:none;">👥 Users</button>
+    </div>
+
+    <!-- Tab 1: Add New Product -->
+    <div id="AddProductTab" class="tab-content" style="display: block;">
+        <h2>Add New Product / Item</h2>
+        <form id="addItemForm" onsubmit="addItem(event)">
+            <div class="form-group">
+                <label>Category (e.g., T-Shirts, Pants):</label>
+                <input type="text" id="itemCategory" required placeholder="Example: T-Shirts">
+            </div>
+            <div class="form-group">
+                <label>Item Name:</label>
+                <input type="text" id="itemName" required placeholder="Example: Cotton Shirt">
+            </div>
+            <div class="form-group">
+                <label>Color Selection & Sample:</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="itemColorHex" class="color-input-box" value="#4f46e5" onchange="syncColorPicker()">
+                    <input type="text" id="itemColorName" required placeholder="Color Name (e.g., Royal Blue)" style="flex: 1;">
+                </div>
+                <div class="color-presets">
+                    <span class="color-chip" style="background-color: #ef4444;" onclick="selectPreset('#ef4444', 'Red')"></span>
+                    <span class="color-chip" style="background-color: #3b82f6;" onclick="selectPreset('#3b82f6', 'Blue')"></span>
+                    <span class="color-chip" style="background-color: #10b981;" onclick="selectPreset('#10b981', 'Green')"></span>
+                    <span class="color-chip" style="background-color: #000000;" onclick="selectPreset('#000000', 'Black')"></span>
+                    <span class="color-chip" style="background-color: #ffffff; border: 1px solid #cbd5e1;" onclick="selectPreset('#ffffff', 'White')"></span>
+                    <span class="color-chip" style="background-color: #f59e0b;" onclick="selectPreset('#f59e0b', 'Yellow')"></span>
+                    <span class="color-chip" style="background-color: #ec4899;" onclick="selectPreset('#ec4899', 'Pink')"></span>
+                    <span class="color-chip" style="background-color: #8b5cf6;" onclick="selectPreset('#8b5cf6', 'Purple')"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Initial Quantity:</label>
+                <input type="number" id="itemQty" required min="1" placeholder="Example: 50">
+            </div>
+            <button type="submit">Add Item to Inventory</button>
+        </form>
+    </div>
+
+    <!-- Tab 2: Record Sale -->
+    <div id="RecordSaleTab" class="tab-content">
+        <h2>Record Item Sale</h2>
+        <form id="saleForm" onsubmit="recordSale(event)">
+            <div class="form-group">
+                <label>Select Item:</label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <select id="saleItemSelect" required onchange="updateSaleColorPreview()" style="flex: 1; min-width: 250px;">
+                        <option value="">-- Select an item --</option>
+                    </select>
+                    <div id="saleColorPreviewBox" style="display: none; align-items: center; gap: 8px; padding: 10px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; font-weight: 500;">
+                        <span id="salePreviewDot" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #cbd5e1; display: inline-block; flex-shrink: 0;"></span>
+                        <span id="salePreviewText" style="color: var(--text-main);"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Quantity Sold:</label>
+                <input type="number" id="saleQty" required min="1" placeholder="How many sold?">
+            </div>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="date" id="saleDate" required>
+            </div>
+            <button type="submit" style="background-color: var(--success); box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">Save Sale Record</button>
+        </form>
+    </div>
+
+    <!-- Tab 3: Remaining Stock -->
+    <div id="RemainingStockTab" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+            <h2 style="margin: 0; border: none; padding: 0;">Remaining Stock (Inventory)</h2>
+            <div class="no-print" style="display: flex; gap: 10px;">
+                <button type="button" onclick="exportBackupData()" style="padding: 8px 14px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">💾 Backup</button>
+                <label style="margin: 0; padding: 8px 14px; background: #8b5cf6; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-block;">
+                    📂 Restore
+                    <input type="file" id="importFile" accept=".json" onchange="importBackupData(event)" style="display: none;">
+                </label>
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Item Name</th>
+                        <th>Color</th>
+                        <th>Remaining Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 4: Sales Report -->
+    <div id="SalesReportTab" class="tab-content">
+        <h2>Sales Report</h2>
+        <div class="form-group no-print" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <label style="color: var(--primary); margin-bottom: 10px;">Select Date to Download Daily Invoice PDF:</label>
+            <div style="display: flex; gap: 12px;">
+                <input type="date" id="pdfReportDate" style="flex: 1;">
+                <button type="button" class="btn-action" style="background-color: #0ea5e9; margin-top: 0; width: auto;" onclick="downloadDailyPDF()">📥 Download / Print PDF</button>
+            </div>
+        </div>
+        <div id="normalReportView">
+            <h3 style="margin-bottom: 5px; color: var(--text-main); font-size: 18px;">All Sales Report</h3>
+            <div class="table-container" style="margin-top: 10px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Item Name</th>
+                            <th>Color</th>
+                            <th>Quantity Sold</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: User Management (Admin Only) -->
+    <div id="UserManagementTab" class="tab-content">
+        <h2>User Management (Admin Panel)</h2>
+        <form id="addUserForm" onsubmit="addNewUser(event)" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px;">
+            <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New System User</h3>
+            <div class="form-group">
+                <label>New Username:</label>
+                <input type="text" id="newUsername" required placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="newPassword" required placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label>User Role:</label>
+                <select id="newUserRole">
+                    <option value="staff">Staff (Can add sales & view stock)</option>
+                    <option value="admin">Admin (Full Control)</option>
+                </select>
+            </div>
+            <button type="submit" style="background-color: var(--primary);">Create User Account</button>
+        </form>
+
+        <h3>Existing System Users</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Printable Invoice Template -->
+<div id="printableReport">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #4f46e5; padding-bottom: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 id="invoiceTitle" style="margin: 0; color: #4f46e5; font-size: 24px;">SALES INVOICE</h2>
+            <p id="invoiceSubtitle" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;"></p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-weight: 700; font-size: 15px;">Inventory & Sales System</p>
+            <p id="invoiceGeneratedDate" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
+        </div>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white;">
+        <thead>
+            <tr style="background-color: #4f46e5; color: white;">
+                <th style="padding: 12px 14px; font-size: 13px;">Date</th>
+                <th style="padding: 12px 14px; font-size: 13px;">Category</th>
+                <th style="padding: 12px 14px; font-size: 13px;">Item Name</th>
+                <th style="padding: 12px 14px; font-size: 13px;">Color</th>
+                <th style="padding: 12px 14px; font-size: 13px; text-align: right;">Qty Sold</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceTableBody"></tbody>
+    </table>
+    <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
+        <div style="width: 280px; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: #64748b;">
+                <span>Total Varieties:</span>
+                <span id="invTotalVarieties" style="font-weight: 600; color: #1e293b;">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #1e293b; border-top: 2px solid #cbd5e1; padding-top: 10px;">
+                <span>Total Qty Sold:</span>
+                <span id="invTotalQtySold" style="color: #4f46e5;">0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB2wBOEPv0ceGY_dZ864y18BepjDcog3AI",
+        authDomain: "zenzul.firebaseapp.com",
+        databaseURL: "https://zenzul-default-rtdb.firebaseio.com/",
+        projectId: "zenzul",
+        storageBucket: "zenzul.firebasestorage.app",
+        messagingSenderId: "987784236660",
+        appId: "1:987784236660:web:20486d1c7cc3f02b464b21",
+        measurementId: "G-EPVSRR342Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let lowStockDismissed = false;
+    let inventory = [];
+    let sales = [];
+    let users = [];
+
+    window.onload = function() {
+        // Realtime sync from Firebase
+        db.ref('inventory').on('value', (snapshot) => {
+            inventory = snapshot.val() || [];
+            updateUI();
+        });
+
+        db.ref('sales').on('value', (snapshot) => {
+            sales = snapshot.val() || [];
+            updateUI();
+        });
+
+        db.ref('users').on('value', (snapshot) => {
+            let val = snapshot.val();
+            if (!val) {
+                // Initialize default admin if no users exist
+                users = [{ username: 'chanuka', password: '12345', role: 'admin' }];
+                db.ref('users').set(users);
+            } else {
+                users = val;
+            }
+            checkLoginSession();
+        });
+    };
+
+    function checkLoginSession() {
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainSystemContainer').style.display = 'block';
+            applyRolePermissions();
+        } else {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('mainSystemContainer').style.display = 'none';
+        }
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value.trim();
+        const errEl = document.getElementById('loginError');
+
+        const foundUser = users.find(usr => usr.username === u && usr.password === p);
+
+        if (foundUser) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('currentUsername', foundUser.username);
+            sessionStorage.setItem('currentUserRole', foundUser.role);
+            checkLoginSession();
+            updateUI();
+        } else {
+            errEl.innerText = "Invalid Username or Password!";
+            errEl.style.display = 'block';
+        }
+    }
+
+    function logout() {
+        sessionStorage.clear();
+        location.reload();
+    }
+
+    function applyRolePermissions() {
+        const role = sessionStorage.getItem('currentUserRole');
+        const username = sessionStorage.getItem('currentUsername');
+        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${role.toUpperCase()})`;
+
+        if (role === 'admin') {
+            document.getElementById('userTabBtn').style.display = 'block';
+        } else {
+            document.getElementById('userTabBtn').style.display = 'none';
+        }
+    }
+
+    function verifyPassword() {
+        const role = sessionStorage.getItem('currentUserRole');
+        if (role === 'admin') return true;
+
+        let password = prompt("Staff members cannot perform this action. Enter Admin password to proceed:");
+        if (password === null) return false;
+        
+        const adminUser = users.find(u => u.role === 'admin' && u.password === password);
+        if (adminUser) {
+            return true;
+        } else {
+            alert("Incorrect Admin password! Permission denied.");
+            return false;
+        }
+    }
+
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function selectPreset(hex, name) {
+        document.getElementById('itemColorHex').value = hex;
+        document.getElementById('itemColorName').value = name;
+    }
+
+    function syncColorPicker() {}
+
+    document.getElementById('saleDate').valueAsDate = new Date();
+    document.getElementById('pdfReportDate').valueAsDate = new Date();
+
+    function saveToStorage() {
+        db.ref('inventory').set(inventory);
+        db.ref('sales').set(sales);
+    }
+
+    function saveUsersToStorage() {
+        db.ref('users').set(users);
+    }
+
+    function exportBackupData() {
+        if (!verifyPassword()) return;
+        const data = { inventory: inventory, sales: sales, users: users };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `inventory_backup_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importBackupData(event) {
+        if (!verifyPassword()) return;
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsedData = JSON.parse(e.target.result);
+                if (parsedData.inventory && parsedData.sales) {
+                    if (confirm("Are you sure you want to restore this data?")) {
+                        inventory = parsedData.inventory;
+                        sales = parsedData.sales;
+                        if (parsedData.users) users = parsedData.users;
+                        saveToStorage();
+                        saveUsersToStorage();
+                        lowStockDismissed = false;
+                        updateUI();
+                        alert("Data successfully restored!");
+                    }
+                } else {
+                    alert("Invalid backup file format!");
+                }
+            } catch (err) {
+                alert("Error reading backup file!");
+            }
+            document.getElementById('importFile').value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function checkLowStock() {
+        const lowStockItems = inventory.filter(item => item.qty <= 10);
+        const banner = document.getElementById('lowStockBanner');
+        const msgEl = document.getElementById('lowStockMessage');
+
+        if (lowStockItems.length > 0 && !lowStockDismissed) {
+            let details = lowStockItems.map(i => `<b>${i.name}</b> (${i.colorName || i.color || 'Custom'} - Left: <span style="color:#dc2626; font-weight:bold;">${i.qty}</span>)`).join(', ');
+            msgEl.innerHTML = `Following items are running low on stock (≤ 10): ${details}`;
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    function dismissLowStockAlert() {
+        document.getElementById('lowStockBanner').style.display = 'none';
+        lowStockDismissed = true;
+    }
+
+    function addItem(e) {
+        e.preventDefault();
+        const category = document.getElementById('itemCategory').value.trim();
+        const name = document.getElementById('itemName').value.trim();
+        const colorName = document.getElementById('itemColorName').value.trim();
+        const colorHex = document.getElementById('itemColorHex').value;
+        const qty = parseInt(document.getElementById('itemQty').value);
+
+        const existing = inventory.find(i => 
+            i.category.toLowerCase() === category.toLowerCase() && 
+            i.name.toLowerCase() === name.toLowerCase() && 
+            (i.colorName ? i.colorName.toLowerCase() === colorName.toLowerCase() : i.color.toLowerCase() === colorName.toLowerCase())
+        );
+        
+        if(existing) {
+            existing.qty += qty;
+        } else {
+            inventory.push({ category, name, colorName, colorHex, qty });
+        }
+
+        lowStockDismissed = false;
+        saveToStorage();
+        updateUI();
+        document.getElementById('addItemForm').reset();
+        document.getElementById('itemColorHex').value = '#4f46e5';
+        alert('Item successfully added!');
+    }
+
+    function startInlineEdit(index) {
+        if (!verifyPassword()) return;
+        document.querySelectorAll(`.view-mode-${index}`).forEach(el => el.style.display = 'none');
+        document.querySelectorAll(`.edit-mode-${index}`).forEach(el => el.style.display = 'inline-block');
+        document.getElementById(`edit-btn-${index}`).style.display = 'none';
+        document.getElementById(`delete-btn-${index}`).style.display = 'none';
+        document.getElementById(`save-btn-${index}`).style.display = 'inline-block';
+        document.getElementById(`cancel-btn-${index}`).style.display = 'inline-block';
+    }
+
+    function cancelInlineEdit(index) { updateUI(); }
+
+    function saveInlineEdit(index) {
+        const newCategory = document.getElementById(`edit-cat-${index}`).value.trim();
+        const newName = document.getElementById(`edit-name-${index}`).value.trim();
+        const newColorName = document.getElementById(`edit-colorName-${index}`).value.trim();
+        const newColorHex = document.getElementById(`edit-colorHex-${index}`).value;
+        const newQty = parseInt(document.getElementById(`edit-qty-${index}`).value);
+
+        inventory[index] = { category: newCategory, name: newName, colorName: newColorName, colorHex: newColorHex, qty: newQty };
+        lowStockDismissed = false;
+        saveToStorage();
+        updateUI();
+        alert("Stock updated successfully!");
+    }
+
+    function deleteItem(index) {
+        if (!verifyPassword()) return;
+        if (confirm("Are you sure you want to remove this item?")) {
+            inventory.splice(index, 1);
+            lowStockDismissed = false;
+            saveToStorage();
+            updateUI();
+            alert("Item removed!");
+        }
+    }
+
+    function startSaleInlineEdit(index) {
+        if (!verifyPassword()) return;
+        document.querySelectorAll(`.view-sale-${index}`).forEach(el => el.style.display = 'none');
+        document.querySelectorAll(`.edit-sale-${index}`).forEach(el => el.style.display = 'inline-block');
+        document.getElementById(`edit-sale-btn-${index}`).style.display = 'none';
+        document.getElementById(`delete-sale-btn-${index}`).style.display = 'none';
+        document.getElementById(`save-sale-btn-${index}`).style.display = 'inline-block';
+        document.getElementById(`cancel-sale-btn-${index}`).style.display = 'inline-block';
+    }
+
+    function cancelSaleInlineEdit(index) { updateUI(); }
+
+    function saveSaleInlineEdit(index) {
+        const newDate = document.getElementById(`edit-sale-date-${index}`).value;
+        const newQty = parseInt(document.getElementById(`edit-sale-qty-${index}`).value);
+        const sale = sales[index];
+        const qtyDiff = newQty - sale.qty;
+
+        const invItem = inventory.find(i => 
+            i.category.toLowerCase() === sale.category.toLowerCase() && 
+            i.name.toLowerCase() === sale.name.toLowerCase()
+        );
+
+        if (qtyDiff > 0) {
+            if (!invItem || invItem.qty < qtyDiff) {
+                alert(`Not enough stock! Available: ${invItem ? invItem.qty : 0}`);
+                return;
+            }
+            invItem.qty -= qtyDiff;
+        } else if (qtyDiff < 0 && invItem) {
+            invItem.qty += Math.abs(qtyDiff);
+        }
+
+        sale.date = newDate;
+        sale.qty = newQty;
+        lowStockDismissed = false;
+        saveToStorage();
+        updateUI();
+        alert("Sale updated!");
+    }
+
+    function deleteSale(index) {
+        if (!verifyPassword()) return;
+        const sale = sales[index];
+        if (confirm("Remove sale and return qty to stock?")) {
+            const invItem = inventory.find(i => 
+                i.category.toLowerCase() === sale.category.toLowerCase() && 
+                i.name.toLowerCase() === sale.name.toLowerCase()
+            );
+            if (invItem) invItem.qty += sale.qty;
+            sales.splice(index, 1);
+            lowStockDismissed = false;
+            saveToStorage();
+            updateUI();
+            alert("Sale removed!");
+        }
+    }
+
+    function addNewUser(e) {
+        e.preventDefault();
+        if (!verifyPassword()) return;
+
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newPassword').value.trim();
+        const role = document.getElementById('newUserRole').value;
+
+        if (users.some(u => u.username === username)) {
+            alert("Username already exists!");
+            return;
+        }
+
+        users.push({ username, password, role });
+        saveUsersToStorage();
+        updateUI();
+        document.getElementById('addUserForm').reset();
+        alert("New user account created successfully!");
+    }
+
+    function deleteUser(index) {
+        if (!verifyPassword()) return;
+        if (users[index].username === 'chanuka') {
+            alert("Main Admin account cannot be deleted!");
+            return;
+        }
+        if (confirm(`Delete user "${users[index].username}"?`)) {
+            users.splice(index, 1);
+            saveUsersToStorage();
+            updateUI();
+            alert("User deleted!");
+        }
+    }
+
+    function updateSaleColorPreview() {
+        const index = document.getElementById('saleItemSelect').value;
+        const previewBox = document.getElementById('saleColorPreviewBox');
+        const previewDot = document.getElementById('salePreviewDot');
+        const previewText = document.getElementById('salePreviewText');
+
+        if (index === "") { previewBox.style.display = 'none'; return; }
+        const item = inventory[index];
+        if (item) {
+            previewDot.style.backgroundColor = item.colorHex || '#4f46e5';
+            previewText.innerText = `Selected Color: ${item.colorName || item.color || 'Custom'}`;
+            previewBox.style.display = 'flex';
+        } else { previewBox.style.display = 'none'; }
+    }
+
+    function recordSale(e) {
+        e.preventDefault();
+        const index = document.getElementById('saleItemSelect').value;
+        const qtySold = parseInt(document.getElementById('saleQty').value);
+        const date = document.getElementById('saleDate').value;
+
+        if(index === "") return;
+        if(inventory[index].qty < qtySold) {
+            alert('Not enough quantity in stock!');
+            return;
+        }
+
+        inventory[index].qty -= qtySold;
+        sales.push({
+            date: date,
+            category: inventory[index].category,
+            name: inventory[index].name,
+            colorName: inventory[index].colorName || inventory[index].color,
+            colorHex: inventory[index].colorHex || '#4f46e5',
+            qty: qtySold
+        });
+
+        lowStockDismissed = false;
+        saveToStorage();
+        updateUI();
+        document.getElementById('saleForm').reset();
+        document.getElementById('saleDate').valueAsDate = new Date();
+        document.getElementById('saleColorPreviewBox').style.display = 'none';
+        alert('Sale recorded successfully!');
+    }
+
+    function getColorHTML(cName, cHex) {
+        return `
+            <span style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="width: 16px; height: 16px; border-radius: 50%; background-color: ${cHex || '#4f46e5'}; border: 1px solid #cbd5e1; display: inline-block;"></span>
+                <span>${cName || 'Custom'}</span>
+            </span>
+        `;
+    }
+
+    function updateUI() {
+        const invTable = document.getElementById('inventoryTableBody');
+        invTable.innerHTML = '';
+        const saleSelect = document.getElementById('saleItemSelect');
+        saleSelect.innerHTML = '<option value="">-- Select an item --</option>';
+
+        inventory.forEach((item, index) => {
+            let cName = item.colorName || item.color || 'Custom';
+            let cHex = item.colorHex || '#4f46e5';
+
+            invTable.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="view-mode-${index}">${item.category}</span>
+                        <input type="text" class="edit-mode-${index} inline-input" id="edit-cat-${index}" value="${item.category}" style="display:none; width:100%;">
+                    </td>
+                    <td>
+                        <span class="view-mode-${index}">${item.name}</span>
+                        <input type="text" class="edit-mode-${index} inline-input" id="edit-name-${index}" value="${item.name}" style="display:none; width:100%;">
+                    </td>
+                    <td>
+                        <span class="view-mode-${index}">${getColorHTML(cName, cHex)}</span>
+                        <div class="edit-mode-${index}" style="display:none; display: flex; gap: 6px; align-items: center;">
+                            <input type="color" id="edit-colorHex-${index}" value="${cHex}" style="width: 40px; height: 32px; padding: 1px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="text" class="inline-input" id="edit-colorName-${index}" value="${cName}" style="width: 100%;">
+                        </div>
+                    </td>
+                    <td>
+                        <span class="view-mode-${index}"><strong>${item.qty}</strong></span>
+                        <input type="number" class="edit-mode-${index} inline-input" id="edit-qty-${index}" value="${item.qty}" style="display:none; width:100%;" min="0">
+                    </td>
+                    <td>
+                        <button class="btn-edit" id="edit-btn-${index}" onclick="startInlineEdit(${index})">Edit</button>
+                        <button class="btn-delete" id="delete-btn-${index}" onclick="deleteItem(${index})">Remove</button>
+                        <button class="btn-save" id="save-btn-${index}" style="display:none;" onclick="saveInlineEdit(${index})">Save</button>
+                        <button class="btn-cancel" id="cancel-btn-${index}" style="display:none;" onclick="cancelInlineEdit(${index})">Cancel</button>
+                    </td>
+                </tr>
+            `;
+            if(item.qty > 0) {
+                saleSelect.innerHTML += `<option value="${index}">[${item.category}] ${item.name} - ${cName} (Remaining: ${item.qty})</option>`;
+            }
+        });
+
+        updateSaleColorPreview();
+
+        const reportTable = document.getElementById('reportTableBody');
+        reportTable.innerHTML = '';
+        sales.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (sales.length === 0) {
+            reportTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No sales recorded yet.</td></tr>`;
+        } else {
+            sales.forEach((s, index) => {
+                reportTable.innerHTML += `
+                    <tr>
+                        <td>
+                            <span class="view-sale-${index}">${s.date}</span>
+                            <input type="date" class="edit-sale-${index} inline-input" id="edit-sale-date-${index}" value="${s.date}" style="display:none; width:100%;">
+                        </td>
+                        <td>${s.category}</td>
+                        <td>${s.name}</td>
+                        <td>${getColorHTML(s.colorName || s.color, s.colorHex)}</td>
+                        <td>
+                            <span class="view-sale-${index}"><strong>${s.qty}</strong></span>
+                            <input type="number" class="edit-sale-${index} inline-input" id="edit-sale-qty-${index}" value="${s.qty}" style="display:none; width:100%;" min="1">
+                        </td>
+                        <td class="no-print">
+                            <button class="btn-edit" id="edit-sale-btn-${index}" onclick="startSaleInlineEdit(${index})">Edit</button>
+                            <button class="btn-delete" id="delete-sale-btn-${index}" onclick="deleteSale(${index})">Remove</button>
+                            <button class="btn-save" id="save-sale-btn-${index}" style="display:none;" onclick="saveSaleInlineEdit(${index})">Save</button>
+                            <button class="btn-cancel" id="cancel-sale-btn-${index}" style="display:none;" onclick="cancelSaleInlineEdit(${index})">Cancel</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Render Users List Table
+        const usersTable = document.getElementById('usersTableBody');
+        usersTable.innerHTML = '';
+        users.forEach((u, index) => {
+            usersTable.innerHTML += `
+                <tr>
+                    <td><strong>${u.username}</strong></td>
+                    <td><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: ${u.role === 'admin' ? '#d1fae5; color: #059669;' : '#f1f5f9; color: #475569;'}">${u.role.toUpperCase()}</span></td>
+                    <td>
+                        ${u.username !== 'chanuka' ? `<button class="btn-delete" onclick="deleteUser(${index})">Delete</button>` : '<span style="font-size: 12px; color: var(--text-muted);">Protected</span>'}
+                    </td>
+                </tr>
+            `;
+        });
+
+        checkLowStock();
+    }
+
+    function downloadDailyPDF() {
+        const selectedDate = document.getElementById('pdfReportDate').value;
+        if (!selectedDate) { alert('Please select a date first!'); return; }
+
+        const filteredSales = sales.filter(s => s.date === selectedDate);
+        const invoiceTableBody = document.getElementById('invoiceTableBody');
+        invoiceTableBody.innerHTML = '';
+
+        document.getElementById('invoiceTitle').innerText = `SALES INVOICE`;
+        document.getElementById('invoiceSubtitle').innerText = `Date: ${selectedDate}`;
+        document.getElementById('invoiceGeneratedDate').innerText = `Generated: ${new Date().toLocaleDateString()}`;
+
+        let totalQty = 0;
+        if (filteredSales.length === 0) {
+            invoiceTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No sales recorded for this date.</td></tr>`;
+        } else {
+            filteredSales.forEach((s) => {
+                totalQty += s.qty;
+                invoiceTableBody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px 14px; font-size: 13px;">${s.date}</td>
+                        <td style="padding: 12px 14px; font-size: 13px;">${s.category}</td>
+                        <td style="padding: 12px 14px; font-size: 13px;">${s.name}</td>
+                        <td style="padding: 12px 14px; font-size: 13px;">${s.colorName || s.color || 'Custom'}</td>
+                        <td style="padding: 12px 14px; font-size: 13px; text-align: right; font-weight: 600;">${s.qty}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('invTotalVarieties').innerText = filteredSales.length;
+        document.getElementById('invTotalQtySold').innerText = totalQty;
+        window.print();
+        updateUI();
+    }
+</script>
+
+</body>
+</html>
