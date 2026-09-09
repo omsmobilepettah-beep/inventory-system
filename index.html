@@ -4,30 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZENZUL.LK - Inventory & Sales System</title>
+    
+    <!-- Mobile App (PWA) & Logo Configurations -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ZENZUL.LK">
+    <meta name="application-name" content="ZENZUL.LK">
+    <meta name="theme-color" content="#ea580c">
+
+    <!-- App Icons -->
+    <link rel="icon" type="image/jpeg" href="zenzul.jpg">
+    <link rel="apple-touch-icon" href="zenzul.jpg">
+    
+    <!-- Inline Web App Manifest for Mobile Installation -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        &quot;name&quot;: &quot;ZENZUL.LK&quot;,
+        &quot;short_name&quot;: &quot;ZENZUL.LK&quot;,
+        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#fafaf9&quot;,
+        &quot;theme_color&quot;: &quot;#ea580c&quot;,
+        &quot;icons&quot;: [{
+            &quot;src&quot;: &quot;zenzul.jpg&quot;,
+            &quot;sizes&quot;: &quot;512x512&quot;,
+            &quot;type&quot;: &quot;image/jpeg&quot;
+        }]
+    }">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
-            --primary: #ea580c;        /* Soft Warm Orange */
+            --primary: #ea580c;        
             --primary-hover: #c2410c;  
-            --accent-soft: #fef3c7;    /* Soft Light Yellow */
-            --accent-border: #fde68a;  /* Subtle Yellow Border */
-            --bg-color: #fafaf9;       /* Light Clean Neutral Background */
+            --accent-soft: #fef3c7;    
+            --accent-border: #fde68a;  
+            --bg-color: #fafaf9;       
             --card-bg: #ffffff;
-            --text-main: #1c1917;      /* Subtle Dark Text */
-            --text-muted: #78350f;     /* Warm Soft Muted Text */
-            --border-color: #f3f4f6;   /* Clean Light Border */
-            --border-warm: #fed7aa;    /* Soft Warm Border */
+            --text-main: #1c1917;      
+            --text-muted: #78350f;     
+            --border-color: #f3f4f6;   
+            --border-warm: #fed7aa;    
         }
 
-        /* Screen Fit Styles */
         html, body {
             height: 100vh;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Avoid page scrollbar */
+            overflow: hidden;
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: var(--text-main);
@@ -48,29 +75,39 @@
 
         .login-card {
             background: white;
-            padding: 40px;
+            padding: 30px 40px;
             border-radius: 16px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             text-align: center;
             border: 1px solid #f3f4f6;
             animation: fadeInContainer 0.4s ease-out;
         }
 
+        .app-logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ea580c;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(234, 88, 12, 0.2);
+        }
+
         .brand-header {
-            font-size: 30px;
+            font-size: 26px;
             font-weight: 800;
             color: #ea580c;
-            margin: 0 0 4px 0;
+            margin: 0 0 2px 0;
             letter-spacing: -0.5px;
         }
 
         .brand-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: #92400e;
             font-weight: 600;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -120,7 +157,7 @@
         header {
             background: #ffffff;
             color: var(--text-main);
-            padding: 12px 25px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -128,9 +165,23 @@
             flex-shrink: 0;
         }
 
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ea580c;
+        }
+
         h1 {
             margin: 0;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: #ea580c;
             letter-spacing: -0.5px;
@@ -199,11 +250,11 @@
         .tab button {
             background-color: transparent;
             flex: 1;
-            min-width: 130px;
+            min-width: 110px;
             border: none;
             outline: none;
             cursor: pointer;
-            padding: 12px 15px;
+            padding: 12px 10px;
             transition: all 0.2s ease;
             font-size: 13px;
             font-weight: 600;
@@ -239,10 +290,10 @@
 
         h2 {
             color: #44403c;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             margin-top: 0;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             padding-bottom: 6px;
             border-bottom: 1px solid #f3f4f6;
         }
@@ -458,6 +509,7 @@
 <!-- Login Overlay Screen -->
 <div id="loginOverlay">
     <div class="login-card">
+        <img src="zenzul.jpg" alt="ZENZUL.LK Logo" class="app-logo-img">
         <h1 class="brand-header">ZENZUL.LK</h1>
         <div class="brand-subtitle">Smart Inventory System</div>
         <form onsubmit="handleLogin(event)">
@@ -532,9 +584,12 @@
 
 <div class="container" id="mainSystemContainer" style="display: none;">
     <header class="no-print">
-        <div>
-            <h1>ZENZUL.LK</h1>
-            <p id="loggedUserInfo" style="margin: 2px 0 0 0; font-size: 11px; color: #78716c; font-weight: 500;"></p>
+        <div class="header-title-box">
+            <img src="zenzul.jpg" alt="Logo" class="header-logo-img">
+            <div>
+                <h1>ZENZUL.LK</h1>
+                <p id="loggedUserInfo" style="margin: 2px 0 0 0; font-size: 11px; color: #78716c; font-weight: 500;"></p>
+            </div>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <button id="adminAddProductBtn" class="btn-add-product" onclick="openAddProductModal()" style="display: none;">
@@ -705,10 +760,13 @@
 <!-- Printable Invoice -->
 <div id="printableReport">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ea580c; padding-bottom: 12px; margin-bottom: 20px;">
-        <div>
-            <h1 style="margin: 0; color: #ea580c; font-size: 24px; font-weight: 800;">ZENZUL.LK</h1>
-            <h2 id="invoiceTitle" style="margin: 4px 0 0 0; color: #444; font-size: 16px;">SALES INVOICE</h2>
-            <p id="invoiceSubtitle" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <img src="zenzul.jpg" alt="Logo" style="width: 50px; height: 50px; border-radius: 50%;">
+            <div>
+                <h1 style="margin: 0; color: #ea580c; font-size: 24px; font-weight: 800;">ZENZUL.LK</h1>
+                <h2 id="invoiceTitle" style="margin: 4px 0 0 0; color: #444; font-size: 16px;">SALES INVOICE</h2>
+                <p id="invoiceSubtitle" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
+            </div>
         </div>
         <div style="text-align: right;">
             <p style="margin: 0; font-weight: 700; font-size: 14px; color: #ea580c;">ZENZUL.LK Systems</p>
