@@ -3,43 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Inventory & Sales System - Multi-User</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>ZENZUL.LK - Inventory & Sales System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --success: #10b981;
-            --success-hover: #059669;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg-color: #f8fafc;
+            --primary: #ea580c;        /* Soft Warm Orange */
+            --primary-hover: #c2410c;  
+            --accent-soft: #fef3c7;    /* Soft Light Yellow */
+            --accent-border: #fde68a;  /* Subtle Yellow Border */
+            --bg-color: #fafaf9;       /* Light Clean Neutral Background */
             --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
+            --text-main: #1c1917;      /* Subtle Dark Text */
+            --text-muted: #78350f;     /* Warm Soft Muted Text */
+            --border-color: #f3f4f6;   /* Clean Light Border */
+            --border-warm: #fed7aa;    /* Soft Warm Border */
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            background-color: #fbfbfb;
             color: var(--text-main);
             margin: 0;
             padding: 30px 20px;
             min-height: 100vh;
         }
 
-        /* Login Overlay Screen */
         #loginOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            background: #fafaf9;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -50,14 +48,31 @@
             background: white;
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 400px;
             text-align: center;
-            animation: fadeInContainer 0.5s ease-out;
+            border: 1px solid #f3f4f6;
+            animation: fadeInContainer 0.4s ease-out;
         }
 
-        /* Low Stock Floating Popup Banner */
+        .brand-header {
+            font-size: 30px;
+            font-weight: 800;
+            color: #ea580c;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         #lowStockBanner {
             display: none;
             position: fixed;
@@ -68,11 +83,11 @@
             width: 90%;
             max-width: 650px;
             background: #fffbeb;
-            border: 1px solid #fcd34d;
-            border-left: 6px solid #f59e0b;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--accent-border);
+            border-left: 5px solid #d97706;
+            padding: 14px 18px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px -5px rgba(217, 119, 6, 0.15);
             animation: slideDown 0.4s ease-out;
         }
 
@@ -85,135 +100,221 @@
             max-width: 1000px;
             margin: auto;
             background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             overflow: hidden;
-            animation: fadeInContainer 0.6s ease-out;
+            animation: fadeInContainer 0.5s ease-out;
+            border: 1px solid #e7e5e4;
         }
 
         @keyframes fadeInContainer {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         header {
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-            color: white;
-            padding: 25px 30px;
+            background: #ffffff;
+            color: var(--text-main);
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         h1 {
             margin: 0;
             font-size: 22px;
-            font-weight: 700;
+            font-weight: 800;
+            color: #ea580c;
             letter-spacing: -0.5px;
         }
 
-        /* Tab Navigation */
+        .btn-add-product {
+            background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 3px 8px rgba(234, 88, 12, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add-product:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(234, 88, 12, 0.35);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(28, 25, 23, 0.4);
+            backdrop-filter: blur(3px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            position: relative;
+            border: 1px solid #e7e5e4;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         .tab {
             display: flex;
-            background-color: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
+            background-color: #fafaf9;
+            border-bottom: 1px solid #e7e5e4;
             overflow-x: auto;
         }
 
         .tab button {
             background-color: transparent;
             flex: 1;
-            min-width: 160px;
+            min-width: 150px;
             border: none;
             outline: none;
             cursor: pointer;
-            padding: 16px 15px;
-            transition: all 0.3s ease;
+            padding: 14px 15px;
+            transition: all 0.2s ease;
             font-size: 13px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #78350f;
             text-align: center;
             border-bottom: 3px solid transparent;
         }
 
         .tab button:hover {
-            color: var(--primary);
-            background-color: rgba(79, 70, 229, 0.04);
+            color: #ea580c;
+            background-color: #f5f5f4;
         }
 
         .tab button.active {
-            color: var(--primary);
+            color: #ea580c;
             background-color: white;
-            border-bottom: 3px solid var(--primary);
+            border-bottom: 3px solid #ea580c;
+            font-weight: 700;
         }
 
         .tab-content {
             display: none;
-            padding: 35px;
-            animation: fadeInTab 0.4s ease-in-out;
+            padding: 30px;
+            animation: fadeInTab 0.3s ease-in-out;
         }
 
         @keyframes fadeInTab {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         h2 {
-            color: var(--text-main);
-            font-size: 20px;
-            font-weight: 600;
+            color: #44403c;
+            font-size: 18px;
+            font-weight: 700;
             margin-top: 0;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             text-align: left;
+            position: relative;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 13px;
-            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 12px;
+            color: #78350f;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         input, select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 12px;
             box-sizing: border-box;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
+            border: 1px solid #e7e5e4;
+            border-radius: 7px;
+            font-size: 13px;
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
-            background-color: #f8fafc;
+            background-color: #fafaf9;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #ea580c;
             background-color: white;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e7e5e4;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 9px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-result-item:hover {
+            background-color: #fffbeb;
+            color: #ea580c;
         }
 
         .color-picker-wrapper {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
         .color-input-box {
-            width: 50px;
-            height: 46px;
+            width: 40px;
+            height: 38px;
             padding: 2px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: 1px solid #e7e5e4;
+            border-radius: 6px;
             background: white;
             cursor: pointer;
         }
@@ -226,42 +327,39 @@
         }
 
         .color-chip {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             cursor: pointer;
-            border: 2px solid #cbd5e1;
-            transition: transform 0.2s, border-color 0.2s;
+            border: 1px solid #d6d3d1;
+            transition: transform 0.2s;
         }
 
         .color-chip:hover {
-            transform: scale(1.2);
+            transform: scale(1.15);
         }
 
         button[type="submit"], .btn-action {
             width: 100%;
-            padding: 12px 20px;
-            background-color: var(--primary);
+            padding: 11px 18px;
+            background: #ea580c;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 7px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 13px;
             transition: all 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
 
         button[type="submit"]:hover, .btn-action:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+            background: #c2410c;
         }
 
         .table-container {
             overflow-x: auto;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #e7e5e4;
             margin-top: 15px;
         }
 
@@ -273,28 +371,28 @@
         }
 
         th, td {
-            padding: 14px 18px;
-            font-size: 14px;
+            padding: 12px 15px;
+            font-size: 13px;
         }
 
         th {
-            background-color: #f1f5f9;
-            color: var(--text-main);
-            font-weight: 600;
-            border-bottom: 2px solid var(--border-color);
+            background-color: #fafaf9;
+            color: #44403c;
+            font-weight: 700;
+            border-bottom: 1px solid #e7e5e4;
         }
 
         tr:not(:last-child) td {
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #f3f4f6;
         }
 
         tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: #fafaf9;
         }
 
         .btn-edit, .btn-save, .btn-cancel, .btn-delete {
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
             font-size: 12px;
@@ -302,22 +400,22 @@
             transition: all 0.2s;
         }
 
-        .btn-edit { background-color: #fef3c7; color: #d97706; }
+        .btn-edit { background-color: #fef3c7; color: #92400e; }
         .btn-edit:hover { background-color: #fde68a; }
 
-        .btn-delete { background-color: #fee2e2; color: #dc2626; margin-left: 6px; }
+        .btn-delete { background-color: #fee2e2; color: #dc2626; margin-left: 4px; }
         .btn-delete:hover { background-color: #fecaca; }
 
         .btn-save { background-color: #d1fae5; color: #059669; }
         .btn-save:hover { background-color: #a7f3d0; }
 
-        .btn-cancel { background-color: #f1f5f9; color: #475569; margin-left: 6px; border: 1px solid var(--border-color); }
-        .btn-cancel:hover { background-color: #e2e8f0; }
+        .btn-cancel { background-color: #f3f4f6; color: #4b5563; margin-left: 4px; }
+        .btn-cancel:hover { background-color: #e5e7eb; }
 
         .inline-input {
-            padding: 6px 10px !important;
-            font-size: 13px !important;
-            border-radius: 6px !important;
+            padding: 5px 8px !important;
+            font-size: 12px !important;
+            border-radius: 5px !important;
         }
 
         #printableReport {
@@ -346,7 +444,8 @@
 <!-- Login Overlay Screen -->
 <div id="loginOverlay">
     <div class="login-card">
-        <h2 style="margin-bottom: 25px; color: #1e293b; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; text-align: center;">System Login</h2>
+        <h1 class="brand-header">ZENZUL.LK</h1>
+        <div class="brand-subtitle">Smart Inventory System</div>
         <form onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label>Username</label>
@@ -356,116 +455,148 @@
                 <label>Password</label>
                 <input type="password" id="loginPass" required placeholder="Enter password">
             </div>
-            <p id="loginError" style="color: #ef4444; font-size: 13px; margin-bottom: 15px; display: none; font-weight: 500; text-align: left;"></p>
+            <p id="loginError" style="color: #dc2626; font-size: 12px; margin-bottom: 12px; display: none; font-weight: 600; text-align: left;"></p>
             <button type="submit">Login to System</button>
         </form>
     </div>
 </div>
 
-<!-- Low Stock Popup Warning Banner -->
+<!-- Low Stock Warning Banner -->
 <div id="lowStockBanner">
     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div style="display: flex; gap: 12px; align-items: flex-start;">
-            <span style="font-size: 22px; line-height: 1;">⚠️</span>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <span style="font-size: 18px; line-height: 1;">⚠️</span>
             <div>
-                <h4 style="margin: 0 0 4px 0; color: #b45309; font-size: 15px; font-weight: 700;">Low Stock Warning! (Quantity ≤ 10)</h4>
-                <p id="lowStockMessage" style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.4;"></p>
+                <h4 style="margin: 0 0 3px 0; color: #92400e; font-size: 14px; font-weight: 700;">Low Stock Warning! (Quantity ≤ 10)</h4>
+                <p id="lowStockMessage" style="margin: 0; font-size: 12px; color: #b45309; line-height: 1.4;"></p>
             </div>
         </div>
-        <button onclick="dismissLowStockAlert()" style="background: rgba(245, 158, 11, 0.15); border: none; font-size: 16px; color: #92400e; cursor: pointer; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Dismiss">&times;</button>
+        <button onclick="dismissLowStockAlert()" style="background: rgba(217, 119, 6, 0.15); border: none; font-size: 14px; color: #92400e; cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Dismiss">&times;</button>
     </div>
 </div>
 
-<div class="container" id="mainSystemContainer" style="display: none;">
-    <header class="no-print">
-        <div>
-            <h1>Inventory & Sales Management System</h1>
-            <p id="loggedUserInfo" style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.85;"></p>
+<!-- Add Product Modal Window -->
+<div id="addProductModal" class="modal-overlay">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0; font-size: 16px; color: #44403c;">➕ Add New Item</h3>
+            <button onclick="closeAddProductModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #78716c;">&times;</button>
         </div>
-        <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">Logout</button>
-    </header>
-
-    <!-- Tab Navigation links -->
-    <div class="tab no-print" id="tabNavContainer">
-        <button class="tablinks active" onclick="openTab(event, 'AddProductTab')">📦 Add Product</button>
-        <button class="tablinks" onclick="openTab(event, 'RecordSaleTab')">🛒 Record Sale</button>
-        <button class="tablinks" onclick="openTab(event, 'RemainingStockTab')">📋 Stock</button>
-        <button class="tablinks" onclick="openTab(event, 'SalesReportTab')">📊 Reports</button>
-        <button class="tablinks" id="userTabBtn" onclick="openTab(event, 'UserManagementTab')" style="display:none;">👥 Users</button>
-    </div>
-
-    <!-- Tab 1: Add New Product -->
-    <div id="AddProductTab" class="tab-content" style="display: block;">
-        <h2>Add New Product / Item</h2>
         <form id="addItemForm" onsubmit="addItem(event)">
             <div class="form-group">
-                <label>Category (e.g., T-Shirts, Pants):</label>
-                <input type="text" id="itemCategory" required placeholder="Example: T-Shirts">
+                <label>Category:</label>
+                <input type="text" id="itemCategory" required placeholder="Example: Covers / Chargers">
             </div>
             <div class="form-group">
                 <label>Item Name:</label>
-                <input type="text" id="itemName" required placeholder="Example: Cotton Shirt">
+                <input type="text" id="itemName" required placeholder="Example: iPhone 13 Back Cover">
             </div>
             <div class="form-group">
-                <label>Color Selection & Sample:</label>
+                <label>Color Selection:</label>
                 <div class="color-picker-wrapper">
-                    <input type="color" id="itemColorHex" class="color-input-box" value="#4f46e5" onchange="syncColorPicker()">
-                    <input type="text" id="itemColorName" required placeholder="Color Name (e.g., Royal Blue)" style="flex: 1;">
+                    <input type="color" id="itemColorHex" class="color-input-box" value="#ea580c">
+                    <input type="text" id="itemColorName" required placeholder="Color Name (e.g., Orange)" style="flex: 1;">
                 </div>
                 <div class="color-presets">
-                    <span class="color-chip" style="background-color: #ef4444;" onclick="selectPreset('#ef4444', 'Red')"></span>
-                    <span class="color-chip" style="background-color: #3b82f6;" onclick="selectPreset('#3b82f6', 'Blue')"></span>
-                    <span class="color-chip" style="background-color: #10b981;" onclick="selectPreset('#10b981', 'Green')"></span>
-                    <span class="color-chip" style="background-color: #000000;" onclick="selectPreset('#000000', 'Black')"></span>
-                    <span class="color-chip" style="background-color: #ffffff; border: 1px solid #cbd5e1;" onclick="selectPreset('#ffffff', 'White')"></span>
-                    <span class="color-chip" style="background-color: #f59e0b;" onclick="selectPreset('#f59e0b', 'Yellow')"></span>
-                    <span class="color-chip" style="background-color: #ec4899;" onclick="selectPreset('#ec4899', 'Pink')"></span>
-                    <span class="color-chip" style="background-color: #8b5cf6;" onclick="selectPreset('#8b5cf6', 'Purple')"></span>
+                    <span class="color-chip" style="background-color: #ea580c;" onclick="selectPreset('#ea580c', 'Orange')"></span>
+                    <span class="color-chip" style="background-color: #d97706;" onclick="selectPreset('#d97706', 'Yellow/Gold')"></span>
+                    <span class="color-chip" style="background-color: #dc2626;" onclick="selectPreset('#dc2626', 'Red')"></span>
+                    <span class="color-chip" style="background-color: #2563eb;" onclick="selectPreset('#2563eb', 'Blue')"></span>
+                    <span class="color-chip" style="background-color: #059669;" onclick="selectPreset('#059669', 'Green')"></span>
+                    <span class="color-chip" style="background-color: #1c1917;" onclick="selectPreset('#1c1917', 'Black')"></span>
+                    <span class="color-chip" style="background-color: #ffffff;" onclick="selectPreset('#ffffff', 'White')"></span>
                 </div>
             </div>
             <div class="form-group">
                 <label>Initial Quantity:</label>
                 <input type="number" id="itemQty" required min="1" placeholder="Example: 50">
             </div>
-            <button type="submit">Add Item to Inventory</button>
+            <button type="submit" style="margin-top: 10px;">Save Item to Inventory</button>
         </form>
     </div>
+</div>
 
-    <!-- Tab 2: Record Sale -->
-    <div id="RecordSaleTab" class="tab-content">
-        <h2>Record Item Sale</h2>
-        <form id="saleForm" onsubmit="recordSale(event)">
-            <div class="form-group">
-                <label>Select Item:</label>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <select id="saleItemSelect" required onchange="updateSaleColorPreview()" style="flex: 1; min-width: 250px;">
-                        <option value="">-- Select an item --</option>
-                    </select>
-                    <div id="saleColorPreviewBox" style="display: none; align-items: center; gap: 8px; padding: 10px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; font-weight: 500;">
-                        <span id="salePreviewDot" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #cbd5e1; display: inline-block; flex-shrink: 0;"></span>
-                        <span id="salePreviewText" style="color: var(--text-main);"></span>
-                    </div>
+<div class="container" id="mainSystemContainer" style="display: none;">
+    <header class="no-print">
+        <div>
+            <h1>ZENZUL.LK</h1>
+            <p id="loggedUserInfo" style="margin: 2px 0 0 0; font-size: 12px; color: #78716c; font-weight: 500;"></p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn-add-product" onclick="openAddProductModal()">
+                <span>➕</span>
+                <span>Add Product</span>
+            </button>
+            <button onclick="logout()" style="background: #f3f4f6; border: 1px solid #e7e5e4; color: #44403c; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Logout</button>
+        </div>
+    </header>
+
+    <div class="tab no-print" id="tabNavContainer">
+        <button class="tablinks active" onclick="openTab(event, 'RecordSaleTab')">🛒 Record Sale</button>
+        <button class="tablinks" onclick="openTab(event, 'RemainingStockTab')">📋 Stock</button>
+        <button class="tablinks" onclick="openTab(event, 'SalesReportTab')">📊 Reports</button>
+        <button class="tablinks" id="userTabBtn" onclick="openTab(event, 'UserManagementTab')" style="display:none;">👥 Users</button>
+    </div>
+
+    <!-- Tab 1: Record Sale -->
+    <div id="RecordSaleTab" class="tab-content" style="display: block;">
+        <h2>Record Sale & Create Invoice</h2>
+        <div style="background: #fafaf9; padding: 18px; border-radius: 10px; border: 1px solid #e7e5e4; margin-bottom: 20px;">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 2; min-width: 240px; margin-bottom: 0;">
+                    <label>Search & Select Item:</label>
+                    <input type="hidden" id="saleSelectedItemIndex">
+                    <input type="text" id="saleSearchInput" placeholder="🔍 Type item name, category, or color..." autocomplete="off" onkeyup="filterSaleItems()">
+                    <div id="searchResultsDropdown" class="search-results-dropdown"></div>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 100px; margin-bottom: 0;">
+                    <label>Quantity:</label>
+                    <input type="number" id="saleQty" min="1" placeholder="Qty" value="1">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button type="button" onclick="addToCart()" style="padding: 10px 18px; background: #ea580c; color: white; border: none; border-radius: 7px; font-weight: 700; cursor: pointer; white-space: nowrap;">➕ Add to Cart</button>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Quantity Sold:</label>
-                <input type="number" id="saleQty" required min="1" placeholder="How many sold?">
+            
+            <div id="saleColorPreviewBox" style="display: none; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 12px; font-weight: 500; margin-top: 12px;">
+                <span id="salePreviewDot" style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #d6d3d1; display: inline-block; flex-shrink: 0;"></span>
+                <span id="salePreviewText" style="color: var(--text-main);"></span>
             </div>
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="date" id="saleDate" required>
-            </div>
-            <button type="submit" style="background-color: var(--success); box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">Save Sale Record</button>
-        </form>
+        </div>
+
+        <h3 style="margin-bottom: 10px; font-size: 15px; color: #44403c;">Current Cart Items</h3>
+        <div class="table-container" style="margin-bottom: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Item Name</th>
+                        <th>Color</th>
+                        <th>Qty</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: #78716c;">Cart is empty. Add items above.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-group">
+            <label>Sale Date:</label>
+            <input type="date" id="saleDate" required style="max-width: 220px;">
+        </div>
+
+        <button type="button" onclick="completeSaleInvoice()" style="background: #059669; font-size: 14px; padding: 12px;">🛍️ Complete Sale & Generate Invoice</button>
     </div>
 
-    <!-- Tab 3: Remaining Stock -->
+    <!-- Tab 2: Remaining Stock -->
     <div id="RemainingStockTab" class="tab-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">
             <h2 style="margin: 0; border: none; padding: 0;">Remaining Stock (Inventory)</h2>
-            <div class="no-print" style="display: flex; gap: 10px;">
-                <button type="button" onclick="exportBackupData()" style="padding: 8px 14px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">💾 Backup</button>
-                <label style="margin: 0; padding: 8px 14px; background: #8b5cf6; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-block;">
+            <div class="no-print" style="display: flex; gap: 8px;">
+                <button type="button" onclick="exportBackupData()" style="padding: 7px 12px; background: #ea580c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">💾 Backup</button>
+                <label style="margin: 0; padding: 7px 12px; background: #fef3c7; color: #92400e; border-radius: 6px; border: 1px solid #fde68a; cursor: pointer; font-size: 12px; font-weight: 700; display: inline-block;">
                     📂 Restore
                     <input type="file" id="importFile" accept=".json" onchange="importBackupData(event)" style="display: none;">
                 </label>
@@ -487,27 +618,26 @@
         </div>
     </div>
 
-    <!-- Tab 4: Sales Report -->
+    <!-- Tab 3: Sales Report -->
     <div id="SalesReportTab" class="tab-content">
-        <h2>Sales Report</h2>
-        <div class="form-group no-print" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-            <label style="color: var(--primary); margin-bottom: 10px;">Select Date to Download Daily Invoice PDF:</label>
-            <div style="display: flex; gap: 12px;">
+        <h2>Sales Reports & Invoices</h2>
+        <div class="form-group no-print" style="background: #fafaf9; padding: 16px; border-radius: 10px; border: 1px solid #e7e5e4;">
+            <label style="color: #78350f; margin-bottom: 8px;">Select Date to Download Daily Invoice PDF:</label>
+            <div style="display: flex; gap: 10px;">
                 <input type="date" id="pdfReportDate" style="flex: 1;">
-                <button type="button" class="btn-action" style="background-color: #0ea5e9; margin-top: 0; width: auto;" onclick="downloadDailyPDF()">📥 Download / Print PDF</button>
+                <button type="button" class="btn-action" style="background: #ea580c; margin-top: 0; width: auto;" onclick="downloadDailyPDF()">📥 Download / Print Daily PDF</button>
             </div>
         </div>
         <div id="normalReportView">
-            <h3 style="margin-bottom: 5px; color: var(--text-main); font-size: 18px;">All Sales Report</h3>
+            <h3 style="margin-bottom: 5px; color: #44403c; font-size: 16px;">All Completed Invoices</h3>
             <div class="table-container" style="margin-top: 10px;">
                 <table>
                     <thead>
                         <tr>
+                            <th>Invoice ID</th>
                             <th>Date</th>
-                            <th>Category</th>
-                            <th>Item Name</th>
-                            <th>Color</th>
-                            <th>Quantity Sold</th>
+                            <th>Items Sold</th>
+                            <th>Total Qty</th>
                             <th class="no-print">Actions</th>
                         </tr>
                     </thead>
@@ -517,11 +647,11 @@
         </div>
     </div>
 
-    <!-- Tab 5: User Management (Admin Only) -->
+    <!-- Tab 4: User Management -->
     <div id="UserManagementTab" class="tab-content">
         <h2>User Management (Admin Panel)</h2>
-        <form id="addUserForm" onsubmit="addNewUser(event)" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px;">
-            <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New System User</h3>
+        <form id="addUserForm" onsubmit="addNewUser(event)" style="background: #fafaf9; padding: 18px; border-radius: 10px; border: 1px solid #e7e5e4; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; font-size: 15px; color: #44403c;">Add New System User</h3>
             <div class="form-group">
                 <label>New Username:</label>
                 <input type="text" id="newUsername" required placeholder="Enter username">
@@ -537,10 +667,10 @@
                     <option value="admin">Admin (Full Control)</option>
                 </select>
             </div>
-            <button type="submit" style="background-color: var(--primary);">Create User Account</button>
+            <button type="submit">Create User Account</button>
         </form>
 
-        <h3>Existing System Users</h3>
+        <h3 style="color: #44403c;">Existing System Users</h3>
         <div class="table-container">
             <table>
                 <thead>
@@ -556,39 +686,40 @@
     </div>
 </div>
 
-<!-- Printable Invoice Template -->
+<!-- Printable Invoice -->
 <div id="printableReport">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #4f46e5; padding-bottom: 15px; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ea580c; padding-bottom: 12px; margin-bottom: 20px;">
         <div>
-            <h2 id="invoiceTitle" style="margin: 0; color: #4f46e5; font-size: 24px;">SALES INVOICE</h2>
-            <p id="invoiceSubtitle" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;"></p>
+            <h1 style="margin: 0; color: #ea580c; font-size: 24px; font-weight: 800;">ZENZUL.LK</h1>
+            <h2 id="invoiceTitle" style="margin: 4px 0 0 0; color: #444; font-size: 16px;">SALES INVOICE</h2>
+            <p id="invoiceSubtitle" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
         </div>
         <div style="text-align: right;">
-            <p style="margin: 0; font-weight: 700; font-size: 15px;">Inventory & Sales System</p>
-            <p id="invoiceGeneratedDate" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
+            <p style="margin: 0; font-weight: 700; font-size: 14px; color: #ea580c;">ZENZUL.LK Systems</p>
+            <p id="invoiceGeneratedDate" style="margin: 3px 0 0 0; color: #64748b; font-size: 11px;"></p>
         </div>
     </div>
     <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white;">
         <thead>
-            <tr style="background-color: #4f46e5; color: white;">
-                <th style="padding: 12px 14px; font-size: 13px;">Date</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Category</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Item Name</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Color</th>
-                <th style="padding: 12px 14px; font-size: 13px; text-align: right;">Qty Sold</th>
+            <tr style="background-color: #ea580c; color: white;">
+                <th style="padding: 10px 12px; font-size: 12px;">Date / ID</th>
+                <th style="padding: 10px 12px; font-size: 12px;">Category</th>
+                <th style="padding: 10px 12px; font-size: 12px;">Item Name</th>
+                <th style="padding: 10px 12px; font-size: 12px;">Color</th>
+                <th style="padding: 10px 12px; font-size: 12px; text-align: right;">Qty Sold</th>
             </tr>
         </thead>
         <tbody id="invoiceTableBody"></tbody>
     </table>
-    <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
-        <div style="width: 280px; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: #64748b;">
-                <span>Total Varieties:</span>
+    <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+        <div style="width: 250px; background: #fafaf9; padding: 15px; border-radius: 8px; border: 1px solid #e7e5e4;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #78350f;">
+                <span>Total Items:</span>
                 <span id="invTotalVarieties" style="font-weight: 600; color: #1e293b;">0</span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #1e293b; border-top: 2px solid #cbd5e1; padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #1e293b; border-top: 1px solid #e7e5e4; padding-top: 8px;">
                 <span>Total Qty Sold:</span>
-                <span id="invTotalQtySold" style="color: #4f46e5;">0</span>
+                <span id="invTotalQtySold" style="color: #ea580c;">0</span>
             </div>
         </div>
     </div>
@@ -611,33 +742,45 @@
 
     let lowStockDismissed = false;
     let inventory = [];
-    let sales = [];
+    let salesInvoices = [];
     let users = [];
+    let currentCart = [];
 
     window.onload = function() {
-        // Realtime sync from Firebase
         db.ref('inventory').on('value', (snapshot) => {
             inventory = snapshot.val() || [];
             updateUI();
         });
 
-        db.ref('sales').on('value', (snapshot) => {
-            sales = snapshot.val() || [];
+        db.ref('salesInvoices').on('value', (snapshot) => {
+            salesInvoices = snapshot.val() || [];
             updateUI();
         });
 
         db.ref('users').on('value', (snapshot) => {
-            let val = snapshot.val();
-            if (!val) {
-                // Initialize default admin if no users exist
-                users = [{ username: 'Pramod', password: '12345', role: 'admin' }];
-                db.ref('users').set(users);
-            } else {
-                users = val;
+            let val = snapshot.val() || [];
+            
+            let chanukaIndex = val.findIndex(u => u.username.toLowerCase() === 'chanuka');
+            if (chanukaIndex !== -1) {
+                val[chanukaIndex].username = 'Pramod';
+                val[chanukaIndex].password = '2026';
+                val[chanukaIndex].role = 'admin';
+                db.ref('users').set(val);
+            } else if (val.length === 0 || !val.some(u => u.username.toLowerCase() === 'pramod')) {
+                val.push({ username: 'Pramod', password: '2026', role: 'admin' });
+                db.ref('users').set(val);
             }
+
+            users = val;
             checkLoginSession();
         });
     };
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.form-group')) {
+            document.getElementById('searchResultsDropdown').style.display = 'none';
+        }
+    });
 
     function checkLoginSession() {
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
@@ -656,7 +799,7 @@
         const p = document.getElementById('loginPass').value.trim();
         const errEl = document.getElementById('loginError');
 
-        const foundUser = users.find(usr => usr.username === u && usr.password === p);
+        const foundUser = users.find(usr => usr.username.toLowerCase() === u.toLowerCase() && usr.password === p);
 
         if (foundUser) {
             sessionStorage.setItem('isLoggedIn', 'true');
@@ -678,7 +821,7 @@
     function applyRolePermissions() {
         const role = sessionStorage.getItem('currentUserRole');
         const username = sessionStorage.getItem('currentUsername');
-        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${role.toUpperCase()})`;
+        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${role ? role.toUpperCase() : ''})`;
 
         if (role === 'admin') {
             document.getElementById('userTabBtn').style.display = 'block';
@@ -717,19 +860,20 @@
         evt.currentTarget.className += " active";
     }
 
+    function openAddProductModal() { document.getElementById('addProductModal').style.display = 'flex'; }
+    function closeAddProductModal() { document.getElementById('addProductModal').style.display = 'none'; }
+
     function selectPreset(hex, name) {
         document.getElementById('itemColorHex').value = hex;
         document.getElementById('itemColorName').value = name;
     }
-
-    function syncColorPicker() {}
 
     document.getElementById('saleDate').valueAsDate = new Date();
     document.getElementById('pdfReportDate').valueAsDate = new Date();
 
     function saveToStorage() {
         db.ref('inventory').set(inventory);
-        db.ref('sales').set(sales);
+        db.ref('salesInvoices').set(salesInvoices);
     }
 
     function saveUsersToStorage() {
@@ -738,11 +882,11 @@
 
     function exportBackupData() {
         if (!verifyPassword()) return;
-        const data = { inventory: inventory, sales: sales, users: users };
+        const data = { inventory: inventory, salesInvoices: salesInvoices, users: users };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `inventory_backup_${new Date().toISOString().slice(0,10)}.json`);
+        downloadAnchor.setAttribute("download", `zenzul_backup_${new Date().toISOString().slice(0,10)}.json`);
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
@@ -757,10 +901,10 @@
         reader.onload = function(e) {
             try {
                 const parsedData = JSON.parse(e.target.result);
-                if (parsedData.inventory && parsedData.sales) {
+                if (parsedData.inventory) {
                     if (confirm("Are you sure you want to restore this data?")) {
                         inventory = parsedData.inventory;
-                        sales = parsedData.sales;
+                        salesInvoices = parsedData.salesInvoices || [];
                         if (parsedData.users) users = parsedData.users;
                         saveToStorage();
                         saveUsersToStorage();
@@ -822,8 +966,214 @@
         saveToStorage();
         updateUI();
         document.getElementById('addItemForm').reset();
-        document.getElementById('itemColorHex').value = '#4f46e5';
-        alert('Item successfully added!');
+        document.getElementById('itemColorHex').value = '#ea580c';
+        closeAddProductModal();
+        alert('Item successfully added to Inventory!');
+    }
+
+    function filterSaleItems() {
+        const query = document.getElementById('saleSearchInput').value.toLowerCase();
+        const dropdown = document.getElementById('searchResultsDropdown');
+        dropdown.innerHTML = '';
+
+        if (!query.trim()) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        let matches = 0;
+        inventory.forEach((item, index) => {
+            let cName = item.colorName || item.color || 'Custom';
+            let label = `[${item.category}] ${item.name} - ${cName}`;
+
+            if (item.qty > 0 && label.toLowerCase().includes(query)) {
+                matches++;
+                const itemEl = document.createElement('div');
+                itemEl.className = 'search-result-item';
+                itemEl.innerHTML = `
+                    <span><strong>[${item.category}]</strong> ${item.name} (${cName})</span>
+                    <span style="font-size: 11px; font-weight: 700; color: #059669;">Stock: ${item.qty}</span>
+                `;
+                itemEl.onclick = function() { selectSaleItem(index, label); };
+                dropdown.appendChild(itemEl);
+            }
+        });
+
+        dropdown.style.display = matches > 0 ? 'block' : 'none';
+    }
+
+    function selectSaleItem(index, label) {
+        document.getElementById('saleSelectedItemIndex').value = index;
+        document.getElementById('saleSearchInput').value = label;
+        document.getElementById('searchResultsDropdown').style.display = 'none';
+        updateSaleColorPreview();
+    }
+
+    function updateSaleColorPreview() {
+        const index = document.getElementById('saleSelectedItemIndex').value;
+        const previewBox = document.getElementById('saleColorPreviewBox');
+        const previewDot = document.getElementById('salePreviewDot');
+        const previewText = document.getElementById('salePreviewText');
+
+        if (index === "" || index === null) { previewBox.style.display = 'none'; return; }
+        const item = inventory[index];
+        if (item) {
+            previewDot.style.backgroundColor = item.colorHex || '#ea580c';
+            previewText.innerText = `Selected Color: ${item.colorName || item.color || 'Custom'} | Available Stock: ${item.qty}`;
+            previewBox.style.display = 'flex';
+        } else { previewBox.style.display = 'none'; }
+    }
+
+    function addToCart() {
+        const index = document.getElementById('saleSelectedItemIndex').value;
+        const qty = parseInt(document.getElementById('saleQty').value);
+
+        if (index === "" || index === null) {
+            alert("Please search and select an item first!");
+            return;
+        }
+
+        const invItem = inventory[index];
+        if (!invItem || invItem.qty < qty) {
+            alert("Not enough quantity in stock!");
+            return;
+        }
+
+        const existingCartIndex = currentCart.findIndex(c => c.inventoryIndex == index);
+        if (existingCartIndex > -1) {
+            if (invItem.qty < (currentCart[existingCartIndex].qty + qty)) {
+                alert("Cannot add more than available stock!");
+                return;
+            }
+            currentCart[existingCartIndex].qty += qty;
+        } else {
+            currentCart.push({
+                inventoryIndex: index,
+                category: invItem.category,
+                name: invItem.name,
+                colorName: invItem.colorName || invItem.color,
+                colorHex: invItem.colorHex || '#ea580c',
+                qty: qty
+            });
+        }
+
+        document.getElementById('saleSearchInput').value = '';
+        document.getElementById('saleSelectedItemIndex').value = '';
+        document.getElementById('saleQty').value = 1;
+        document.getElementById('saleColorPreviewBox').style.display = 'none';
+        renderCart();
+    }
+
+    function removeFromCart(cartIndex) {
+        currentCart.splice(cartIndex, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        const tbody = document.getElementById('cartTableBody');
+        tbody.innerHTML = '';
+
+        if (currentCart.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #78716c;">Cart is empty. Add items above.</td></tr>`;
+            return;
+        }
+
+        currentCart.forEach((item, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.category}</td>
+                    <td>${item.name}</td>
+                    <td>${getColorHTML(item.colorName, item.colorHex)}</td>
+                    <td><strong>${item.qty}</strong></td>
+                    <td><button type="button" class="btn-delete" onclick="removeFromCart(${index})">Remove</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function completeSaleInvoice() {
+        if (currentCart.length === 0) {
+            alert("Cart is empty! Please add items to cart before completing the sale.");
+            return;
+        }
+
+        const saleDate = document.getElementById('saleDate').value;
+        if (!saleDate) {
+            alert("Please select a date!");
+            return;
+        }
+
+        for (let item of currentCart) {
+            const inv = inventory[item.inventoryIndex];
+            if (inv.qty < item.qty) {
+                alert(`Insufficient stock for ${item.name}!`);
+                return;
+            }
+            inv.qty -= item.qty;
+        }
+
+        const invoiceId = 'INV-' + Math.floor(100000 + Math.random() * 900000);
+        
+        salesInvoices.push({
+            invoiceId: invoiceId,
+            date: saleDate,
+            items: [...currentCart]
+        });
+
+        currentCart = [];
+        renderCart();
+        saveToStorage();
+        updateUI();
+        alert(`Sale completed successfully! Generated ${invoiceId}`);
+    }
+
+    function printSingleInvoice(invoiceId) {
+        const inv = salesInvoices.find(i => i.invoiceId === invoiceId);
+        if (!inv) return;
+
+        const invoiceTableBody = document.getElementById('invoiceTableBody');
+        invoiceTableBody.innerHTML = '';
+
+        document.getElementById('invoiceTitle').innerText = `SALES INVOICE (${inv.invoiceId})`;
+        document.getElementById('invoiceSubtitle').innerText = `Date: ${inv.date}`;
+        document.getElementById('invoiceGeneratedDate').innerText = `Generated: ${new Date().toLocaleDateString()}`;
+
+        let totalQty = 0;
+        inv.items.forEach(s => {
+            totalQty += s.qty;
+            invoiceTableBody.innerHTML += `
+                <tr style="border-bottom: 1px solid #e7e5e4;">
+                    <td style="padding: 10px 12px; font-size: 12px;">${inv.date}</td>
+                    <td style="padding: 10px 12px; font-size: 12px;">${s.category}</td>
+                    <td style="padding: 10px 12px; font-size: 12px;">${s.name}</td>
+                    <td style="padding: 10px 12px; font-size: 12px;">${s.colorName || 'Custom'}</td>
+                    <td style="padding: 10px 12px; font-size: 12px; text-align: right; font-weight: 600;">${s.qty}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('invTotalVarieties').innerText = inv.items.length;
+        document.getElementById('invTotalQtySold').innerText = totalQty;
+        window.print();
+        updateUI();
+    }
+
+    function deleteInvoice(index) {
+        if (!verifyPassword()) return;
+        const inv = salesInvoices[index];
+        if (confirm(`Remove Invoice ${inv.invoiceId} and return item quantities to stock?`)) {
+            inv.items.forEach(s => {
+                const invItem = inventory.find(i => 
+                    i.category.toLowerCase() === s.category.toLowerCase() && 
+                    i.name.toLowerCase() === s.name.toLowerCase()
+                );
+                if (invItem) invItem.qty += s.qty;
+            });
+            salesInvoices.splice(index, 1);
+            saveToStorage();
+            updateUI();
+            alert("Invoice removed!");
+        }
     }
 
     function startInlineEdit(index) {
@@ -863,64 +1213,6 @@
         }
     }
 
-    function startSaleInlineEdit(index) {
-        if (!verifyPassword()) return;
-        document.querySelectorAll(`.view-sale-${index}`).forEach(el => el.style.display = 'none');
-        document.querySelectorAll(`.edit-sale-${index}`).forEach(el => el.style.display = 'inline-block');
-        document.getElementById(`edit-sale-btn-${index}`).style.display = 'none';
-        document.getElementById(`delete-sale-btn-${index}`).style.display = 'none';
-        document.getElementById(`save-sale-btn-${index}`).style.display = 'inline-block';
-        document.getElementById(`cancel-sale-btn-${index}`).style.display = 'inline-block';
-    }
-
-    function cancelSaleInlineEdit(index) { updateUI(); }
-
-    function saveSaleInlineEdit(index) {
-        const newDate = document.getElementById(`edit-sale-date-${index}`).value;
-        const newQty = parseInt(document.getElementById(`edit-sale-qty-${index}`).value);
-        const sale = sales[index];
-        const qtyDiff = newQty - sale.qty;
-
-        const invItem = inventory.find(i => 
-            i.category.toLowerCase() === sale.category.toLowerCase() && 
-            i.name.toLowerCase() === sale.name.toLowerCase()
-        );
-
-        if (qtyDiff > 0) {
-            if (!invItem || invItem.qty < qtyDiff) {
-                alert(`Not enough stock! Available: ${invItem ? invItem.qty : 0}`);
-                return;
-            }
-            invItem.qty -= qtyDiff;
-        } else if (qtyDiff < 0 && invItem) {
-            invItem.qty += Math.abs(qtyDiff);
-        }
-
-        sale.date = newDate;
-        sale.qty = newQty;
-        lowStockDismissed = false;
-        saveToStorage();
-        updateUI();
-        alert("Sale updated!");
-    }
-
-    function deleteSale(index) {
-        if (!verifyPassword()) return;
-        const sale = sales[index];
-        if (confirm("Remove sale and return qty to stock?")) {
-            const invItem = inventory.find(i => 
-                i.category.toLowerCase() === sale.category.toLowerCase() && 
-                i.name.toLowerCase() === sale.name.toLowerCase()
-            );
-            if (invItem) invItem.qty += sale.qty;
-            sales.splice(index, 1);
-            lowStockDismissed = false;
-            saveToStorage();
-            updateUI();
-            alert("Sale removed!");
-        }
-    }
-
     function addNewUser(e) {
         e.preventDefault();
         if (!verifyPassword()) return;
@@ -929,7 +1221,7 @@
         const password = document.getElementById('newPassword').value.trim();
         const role = document.getElementById('newUserRole').value;
 
-        if (users.some(u => u.username === username)) {
+        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
             alert("Username already exists!");
             return;
         }
@@ -943,10 +1235,12 @@
 
     function deleteUser(index) {
         if (!verifyPassword()) return;
-        if (users[index].username === 'Pramod') {
-            alert("Main Admin account cannot be deleted!");
+
+        if (users[index].username.toLowerCase() === 'pramod') {
+            alert("Main Admin account (Pramod) cannot be deleted!");
             return;
         }
+
         if (confirm(`Delete user "${users[index].username}"?`)) {
             users.splice(index, 1);
             saveUsersToStorage();
@@ -955,56 +1249,10 @@
         }
     }
 
-    function updateSaleColorPreview() {
-        const index = document.getElementById('saleItemSelect').value;
-        const previewBox = document.getElementById('saleColorPreviewBox');
-        const previewDot = document.getElementById('salePreviewDot');
-        const previewText = document.getElementById('salePreviewText');
-
-        if (index === "") { previewBox.style.display = 'none'; return; }
-        const item = inventory[index];
-        if (item) {
-            previewDot.style.backgroundColor = item.colorHex || '#4f46e5';
-            previewText.innerText = `Selected Color: ${item.colorName || item.color || 'Custom'}`;
-            previewBox.style.display = 'flex';
-        } else { previewBox.style.display = 'none'; }
-    }
-
-    function recordSale(e) {
-        e.preventDefault();
-        const index = document.getElementById('saleItemSelect').value;
-        const qtySold = parseInt(document.getElementById('saleQty').value);
-        const date = document.getElementById('saleDate').value;
-
-        if(index === "") return;
-        if(inventory[index].qty < qtySold) {
-            alert('Not enough quantity in stock!');
-            return;
-        }
-
-        inventory[index].qty -= qtySold;
-        sales.push({
-            date: date,
-            category: inventory[index].category,
-            name: inventory[index].name,
-            colorName: inventory[index].colorName || inventory[index].color,
-            colorHex: inventory[index].colorHex || '#4f46e5',
-            qty: qtySold
-        });
-
-        lowStockDismissed = false;
-        saveToStorage();
-        updateUI();
-        document.getElementById('saleForm').reset();
-        document.getElementById('saleDate').valueAsDate = new Date();
-        document.getElementById('saleColorPreviewBox').style.display = 'none';
-        alert('Sale recorded successfully!');
-    }
-
     function getColorHTML(cName, cHex) {
         return `
-            <span style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="width: 16px; height: 16px; border-radius: 50%; background-color: ${cHex || '#4f46e5'}; border: 1px solid #cbd5e1; display: inline-block;"></span>
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 14px; height: 14px; border-radius: 50%; background-color: ${cHex || '#ea580c'}; border: 1px solid #d6d3d1; display: inline-block;"></span>
                 <span>${cName || 'Custom'}</span>
             </span>
         `;
@@ -1013,12 +1261,10 @@
     function updateUI() {
         const invTable = document.getElementById('inventoryTableBody');
         invTable.innerHTML = '';
-        const saleSelect = document.getElementById('saleItemSelect');
-        saleSelect.innerHTML = '<option value="">-- Select an item --</option>';
 
         inventory.forEach((item, index) => {
             let cName = item.colorName || item.color || 'Custom';
-            let cHex = item.colorHex || '#4f46e5';
+            let cHex = item.colorHex || '#ea580c';
 
             invTable.innerHTML += `
                 <tr>
@@ -1033,7 +1279,7 @@
                     <td>
                         <span class="view-mode-${index}">${getColorHTML(cName, cHex)}</span>
                         <div class="edit-mode-${index}" style="display:none; display: flex; gap: 6px; align-items: center;">
-                            <input type="color" id="edit-colorHex-${index}" value="${cHex}" style="width: 40px; height: 32px; padding: 1px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="color" id="edit-colorHex-${index}" value="${cHex}" style="width: 35px; height: 30px; padding: 1px; border: 1px solid #e7e5e4; border-radius: 4px;">
                             <input type="text" class="inline-input" id="edit-colorName-${index}" value="${cName}" style="width: 100%;">
                         </div>
                     </td>
@@ -1049,55 +1295,43 @@
                     </td>
                 </tr>
             `;
-            if(item.qty > 0) {
-                saleSelect.innerHTML += `<option value="${index}">[${item.category}] ${item.name} - ${cName} (Remaining: ${item.qty})</option>`;
-            }
         });
-
-        updateSaleColorPreview();
 
         const reportTable = document.getElementById('reportTableBody');
         reportTable.innerHTML = '';
-        sales.sort((a, b) => new Date(b.date) - new Date(a.date));
+        salesInvoices.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        if (sales.length === 0) {
-            reportTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No sales recorded yet.</td></tr>`;
+        if (salesInvoices.length === 0) {
+            reportTable.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #78716c;">No sales invoices recorded yet.</td></tr>`;
         } else {
-            sales.forEach((s, index) => {
+            salesInvoices.forEach((inv, index) => {
+                let totalItemsQty = inv.items.reduce((sum, item) => sum + item.qty, 0);
+                let itemsSummary = inv.items.map(i => `${i.name} (${i.qty})`).join(', ');
+
                 reportTable.innerHTML += `
                     <tr>
-                        <td>
-                            <span class="view-sale-${index}">${s.date}</span>
-                            <input type="date" class="edit-sale-${index} inline-input" id="edit-sale-date-${index}" value="${s.date}" style="display:none; width:100%;">
-                        </td>
-                        <td>${s.category}</td>
-                        <td>${s.name}</td>
-                        <td>${getColorHTML(s.colorName || s.color, s.colorHex)}</td>
-                        <td>
-                            <span class="view-sale-${index}"><strong>${s.qty}</strong></span>
-                            <input type="number" class="edit-sale-${index} inline-input" id="edit-sale-qty-${index}" value="${s.qty}" style="display:none; width:100%;" min="1">
-                        </td>
+                        <td><strong>${inv.invoiceId}</strong></td>
+                        <td>${inv.date}</td>
+                        <td style="max-width: 300px;">${itemsSummary}</td>
+                        <td><strong>${totalItemsQty}</strong></td>
                         <td class="no-print">
-                            <button class="btn-edit" id="edit-sale-btn-${index}" onclick="startSaleInlineEdit(${index})">Edit</button>
-                            <button class="btn-delete" id="delete-sale-btn-${index}" onclick="deleteSale(${index})">Remove</button>
-                            <button class="btn-save" id="save-sale-btn-${index}" style="display:none;" onclick="saveSaleInlineEdit(${index})">Save</button>
-                            <button class="btn-cancel" id="cancel-sale-btn-${index}" style="display:none;" onclick="cancelSaleInlineEdit(${index})">Cancel</button>
+                            <button class="btn-edit" onclick="printSingleInvoice('${inv.invoiceId}')">📥 Print Bill</button>
+                            <button class="btn-delete" onclick="deleteInvoice(${index})">Remove</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        // Render Users List Table
         const usersTable = document.getElementById('usersTableBody');
         usersTable.innerHTML = '';
         users.forEach((u, index) => {
             usersTable.innerHTML += `
                 <tr>
                     <td><strong>${u.username}</strong></td>
-                    <td><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: ${u.role === 'admin' ? '#d1fae5; color: #059669;' : '#f1f5f9; color: #475569;'}">${u.role.toUpperCase()}</span></td>
+                    <td><span style="padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: ${u.role === 'admin' ? '#fef3c7; color: #92400e;' : '#f3f4f6; color: #44403c;'}">${u.role.toUpperCase()}</span></td>
                     <td>
-                        ${u.username !== 'Pramod' ? `<button class="btn-delete" onclick="deleteUser(${index})">Delete</button>` : '<span style="font-size: 12px; color: var(--text-muted);">Protected</span>'}
+                        ${u.username.toLowerCase() !== 'pramod' ? `<button class="btn-delete" onclick="deleteUser(${index})">Delete</button>` : '<span style="font-size: 12px; color: #78716c;">Protected</span>'}
                     </td>
                 </tr>
             `;
@@ -1110,33 +1344,38 @@
         const selectedDate = document.getElementById('pdfReportDate').value;
         if (!selectedDate) { alert('Please select a date first!'); return; }
 
-        const filteredSales = sales.filter(s => s.date === selectedDate);
+        const filteredInvoices = salesInvoices.filter(s => s.date === selectedDate);
         const invoiceTableBody = document.getElementById('invoiceTableBody');
         invoiceTableBody.innerHTML = '';
 
-        document.getElementById('invoiceTitle').innerText = `SALES INVOICE`;
+        document.getElementById('invoiceTitle').innerText = `DAILY SALES INVOICE REPORT`;
         document.getElementById('invoiceSubtitle').innerText = `Date: ${selectedDate}`;
         document.getElementById('invoiceGeneratedDate').innerText = `Generated: ${new Date().toLocaleDateString()}`;
 
         let totalQty = 0;
-        if (filteredSales.length === 0) {
-            invoiceTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No sales recorded for this date.</td></tr>`;
+        let totalCount = 0;
+
+        if (filteredInvoices.length === 0) {
+            invoiceTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #78716c; padding: 20px;">No sales recorded for this date.</td></tr>`;
         } else {
-            filteredSales.forEach((s) => {
-                totalQty += s.qty;
-                invoiceTableBody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.date}</td>
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.category}</td>
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.name}</td>
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.colorName || s.color || 'Custom'}</td>
-                        <td style="padding: 12px 14px; font-size: 13px; text-align: right; font-weight: 600;">${s.qty}</td>
-                    </tr>
-                `;
+            filteredInvoices.forEach(inv => {
+                inv.items.forEach(s => {
+                    totalQty += s.qty;
+                    totalCount++;
+                    invoiceTableBody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #e7e5e4;">
+                            <td style="padding: 10px 12px; font-size: 12px;">${inv.invoiceId}</td>
+                            <td style="padding: 10px 12px; font-size: 12px;">${s.category}</td>
+                            <td style="padding: 10px 12px; font-size: 12px;">${s.name}</td>
+                            <td style="padding: 10px 12px; font-size: 12px;">${s.colorName || 'Custom'}</td>
+                            <td style="padding: 10px 12px; font-size: 12px; text-align: right; font-weight: 600;">${s.qty}</td>
+                        </tr>
+                    `;
+                });
             });
         }
 
-        document.getElementById('invTotalVarieties').innerText = filteredSales.length;
+        document.getElementById('invTotalVarieties').innerText = totalCount;
         document.getElementById('invTotalQtySold').innerText = totalQty;
         window.print();
         updateUI();
