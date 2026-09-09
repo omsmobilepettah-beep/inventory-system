@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Inventory & Sales System - Multi-User</title>
+    <title>Modern Inventory & Sales System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -123,13 +120,13 @@
         .tab button {
             background-color: transparent;
             flex: 1;
-            min-width: 160px;
+            min-width: 180px;
             border: none;
             outline: none;
             cursor: pointer;
-            padding: 16px 15px;
+            padding: 16px 20px;
             transition: all 0.3s ease;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-muted);
             text-align: center;
@@ -202,6 +199,7 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
 
+        /* Color Selection Styling */
         .color-picker-wrapper {
             display: flex;
             gap: 12px;
@@ -258,6 +256,7 @@
             box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
         }
 
+        /* Table Styling */
         .table-container {
             overflow-x: auto;
             border-radius: 8px;
@@ -284,6 +283,10 @@
             border-bottom: 2px solid var(--border-color);
         }
 
+        tr {
+            transition: background-color 0.15s ease;
+        }
+
         tr:not(:last-child) td {
             border-bottom: 1px solid var(--border-color);
         }
@@ -292,6 +295,7 @@
             background-color: #f8fafc;
         }
 
+        /* Action Buttons inside Table */
         .btn-edit, .btn-save, .btn-cancel, .btn-delete {
             padding: 6px 12px;
             border-radius: 6px;
@@ -302,16 +306,31 @@
             transition: all 0.2s;
         }
 
-        .btn-edit { background-color: #fef3c7; color: #d97706; }
+        .btn-edit {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
         .btn-edit:hover { background-color: #fde68a; }
 
-        .btn-delete { background-color: #fee2e2; color: #dc2626; margin-left: 6px; }
+        .btn-delete {
+            background-color: #fee2e2;
+            color: #dc2626;
+            margin-left: 6px;
+        }
         .btn-delete:hover { background-color: #fecaca; }
 
-        .btn-save { background-color: #d1fae5; color: #059669; }
+        .btn-save {
+            background-color: #d1fae5;
+            color: #059669;
+        }
         .btn-save:hover { background-color: #a7f3d0; }
 
-        .btn-cancel { background-color: #f1f5f9; color: #475569; margin-left: 6px; border: 1px solid var(--border-color); }
+        .btn-cancel {
+            background-color: #f1f5f9;
+            color: #475569;
+            margin-left: 6px;
+            border: 1px solid var(--border-color);
+        }
         .btn-cancel:hover { background-color: #e2e8f0; }
 
         .inline-input {
@@ -320,6 +339,7 @@
             border-radius: 6px !important;
         }
 
+        /* Invoice Report Styling Container (Hidden normally, displayed in print/pdf) */
         #printableReport {
             display: none;
             background: #ffffff;
@@ -328,16 +348,28 @@
             color: var(--text-main);
         }
 
+        /* Print styles for PDF / Print Invoice */
         @media print {
-            body * { visibility: hidden; }
-            #printableReport, #printableReport * { visibility: visible; }
+            body * {
+                visibility: hidden;
+            }
+            #printableReport, #printableReport * {
+                visibility: visible;
+            }
             #printableReport {
                 display: block !important;
                 position: absolute;
-                left: 0; top: 0; width: 100%;
-                background: white; padding: 10px;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                padding: 10px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
-            .no-print { display: none !important; }
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -372,34 +404,30 @@
                 <p id="lowStockMessage" style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.4;"></p>
             </div>
         </div>
-        <button onclick="dismissLowStockAlert()" style="background: rgba(245, 158, 11, 0.15); border: none; font-size: 16px; color: #92400e; cursor: pointer; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Dismiss">&times;</button>
+        <button onclick="dismissLowStockAlert()" style="background: rgba(245, 158, 11, 0.15); border: none; font-size: 16px; color: #92400e; cursor: pointer; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" title="Dismiss">&times;</button>
     </div>
 </div>
 
 <div class="container" id="mainSystemContainer" style="display: none;">
     <header class="no-print">
-        <div>
-            <h1>Inventory & Sales Management System</h1>
-            <p id="loggedUserInfo" style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.85;"></p>
-        </div>
-        <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">Logout</button>
+        <h1>Inventory & Sales Management System</h1>
+        <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s;">Logout</button>
     </header>
 
     <!-- Tab Navigation links -->
-    <div class="tab no-print" id="tabNavContainer">
-        <button class="tablinks active" onclick="openTab(event, 'AddProductTab')">📦 Add Product</button>
+    <div class="tab no-print">
+        <button class="tablinks active" onclick="openTab(event, 'AddProductTab')">📦 Add New Product</button>
         <button class="tablinks" onclick="openTab(event, 'RecordSaleTab')">🛒 Record Sale</button>
-        <button class="tablinks" onclick="openTab(event, 'RemainingStockTab')">📋 Stock</button>
-        <button class="tablinks" onclick="openTab(event, 'SalesReportTab')">📊 Reports</button>
-        <button class="tablinks" id="userTabBtn" onclick="openTab(event, 'UserManagementTab')" style="display:none;">👥 Users</button>
+        <button class="tablinks" onclick="openTab(event, 'RemainingStockTab')">📋 Remaining Stock</button>
+        <button class="tablinks" onclick="openTab(event, 'SalesReportTab')">📊 Sales Report</button>
     </div>
 
-    <!-- Tab 1: Add New Product -->
+    <!-- Tab 1: Add New Product / Item -->
     <div id="AddProductTab" class="tab-content" style="display: block;">
         <h2>Add New Product / Item</h2>
         <form id="addItemForm" onsubmit="addItem(event)">
             <div class="form-group">
-                <label>Category (e.g., T-Shirts, Pants):</label>
+                <label>Category (e.g., T-Shirts, Pants, Shoes):</label>
                 <input type="text" id="itemCategory" required placeholder="Example: T-Shirts">
             </div>
             <div class="form-group">
@@ -412,15 +440,17 @@
                     <input type="color" id="itemColorHex" class="color-input-box" value="#4f46e5" onchange="syncColorPicker()">
                     <input type="text" id="itemColorName" required placeholder="Color Name (e.g., Royal Blue)" style="flex: 1;">
                 </div>
+                <!-- Preset Color Chips -->
                 <div class="color-presets">
                     <span class="color-chip" style="background-color: #ef4444;" onclick="selectPreset('#ef4444', 'Red')"></span>
                     <span class="color-chip" style="background-color: #3b82f6;" onclick="selectPreset('#3b82f6', 'Blue')"></span>
                     <span class="color-chip" style="background-color: #10b981;" onclick="selectPreset('#10b981', 'Green')"></span>
                     <span class="color-chip" style="background-color: #000000;" onclick="selectPreset('#000000', 'Black')"></span>
                     <span class="color-chip" style="background-color: #ffffff; border: 1px solid #cbd5e1;" onclick="selectPreset('#ffffff', 'White')"></span>
-                    <span class="color-chip" style="background-color: #f59e0b;" onclick="selectPreset('#f59e0b', 'Yellow')"></span>
+                    <span class="color-chip" style="background-color: #f59e0b;" onclick="selectPreset('#f59e0b', 'Yellow / Gold')"></span>
                     <span class="color-chip" style="background-color: #ec4899;" onclick="selectPreset('#ec4899', 'Pink')"></span>
                     <span class="color-chip" style="background-color: #8b5cf6;" onclick="selectPreset('#8b5cf6', 'Purple')"></span>
+                    <span class="color-chip" style="background-color: #64748b;" onclick="selectPreset('#64748b', 'Gray')"></span>
                 </div>
             </div>
             <div class="form-group">
@@ -431,16 +461,22 @@
         </form>
     </div>
 
-    <!-- Tab 2: Record Sale -->
+    <!-- Tab 2: Record Item Sale -->
     <div id="RecordSaleTab" class="tab-content">
         <h2>Record Item Sale</h2>
         <form id="saleForm" onsubmit="recordSale(event)">
-            <div class="form-group">
-                <label>Select Item:</label>
+            <div class="form-group" style="position: relative;">
+                <label>Search & Select Item:</label>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <select id="saleItemSelect" required onchange="updateSaleColorPreview()" style="flex: 1; min-width: 250px;">
-                        <option value="">-- Select an item --</option>
-                    </select>
+                    <!-- Search Input Box -->
+                    <div style="flex: 1; min-width: 250px; position: relative;">
+                        <input type="text" id="saleItemSearch" required placeholder="Type to search item name, category or color..." oninput="filterSaleItems()" autocomplete="off">
+                        <input type="hidden" id="saleItemSelect" value="">
+                        <!-- Search Dropdown Suggestions Box -->
+                        <div id="saleSearchDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-height: 220px; overflow-y: auto; z-index: 1000; margin-top: 4px;">
+                        </div>
+                    </div>
+                    <!-- Live Color Sample Preview Box -->
                     <div id="saleColorPreviewBox" style="display: none; align-items: center; gap: 8px; padding: 10px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; font-weight: 500;">
                         <span id="salePreviewDot" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #cbd5e1; display: inline-block; flex-shrink: 0;"></span>
                         <span id="salePreviewText" style="color: var(--text-main);"></span>
@@ -459,18 +495,20 @@
         </form>
     </div>
 
-    <!-- Tab 3: Remaining Stock -->
+    <!-- Tab 3: Remaining Stock (Inventory) -->
     <div id="RemainingStockTab" class="tab-content">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
             <h2 style="margin: 0; border: none; padding: 0;">Remaining Stock (Inventory)</h2>
+            <!-- Data Backup & Restore Buttons -->
             <div class="no-print" style="display: flex; gap: 10px;">
-                <button type="button" onclick="exportBackupData()" style="padding: 8px 14px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">💾 Backup</button>
-                <label style="margin: 0; padding: 8px 14px; background: #8b5cf6; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-block;">
-                    📂 Restore
+                <button type="button" onclick="exportBackupData()" style="padding: 8px 14px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">💾 Backup Data</button>
+                <label style="margin: 0; padding: 8px 14px; background: #8b5cf6; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-transform: none; display: inline-block;">
+                    📂 Restore Data
                     <input type="file" id="importFile" accept=".json" onchange="importBackupData(event)" style="display: none;">
                 </label>
             </div>
         </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">* Click the "Edit" button to modify details, or "Remove" to delete an item completely from inventory. (Password required: 123)</p>
         <div class="table-container">
             <table>
                 <thead>
@@ -482,21 +520,27 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="inventoryTableBody"></tbody>
+                <tbody id="inventoryTableBody">
+                    <!-- Data will load dynamically -->
+                </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Tab 4: Sales Report -->
+    <!-- Tab 4: Date-wise Sales Report -->
     <div id="SalesReportTab" class="tab-content">
         <h2>Sales Report</h2>
+        
+        <!-- Daily Report Controls -->
         <div class="form-group no-print" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-            <label style="color: var(--primary); margin-bottom: 10px;">Select Date to Download Daily Invoice PDF:</label>
+            <label style="color: var(--primary); margin-bottom: 10px;">Select Date to Download Daily Invoice / Report as PDF:</label>
             <div style="display: flex; gap: 12px;">
                 <input type="date" id="pdfReportDate" style="flex: 1;">
-                <button type="button" class="btn-action" style="background-color: #0ea5e9; margin-top: 0; width: auto;" onclick="downloadDailyPDF()">📥 Download / Print PDF</button>
+                <button type="button" class="btn-action" style="background-color: #0ea5e9; margin-top: 0; width: auto; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);" onclick="downloadDailyPDF()">📥 Download / Print Daily Invoice PDF</button>
             </div>
         </div>
+
+        <!-- Normal Screen Table View -->
         <div id="normalReportView">
             <h3 style="margin-bottom: 5px; color: var(--text-main); font-size: 18px;">All Sales Report</h3>
             <div class="table-container" style="margin-top: 10px;">
@@ -511,144 +555,79 @@
                             <th class="no-print">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="reportTableBody"></tbody>
+                    <tbody id="reportTableBody">
+                        <!-- Data will load dynamically -->
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- Tab 5: User Management (Admin Only) -->
-    <div id="UserManagementTab" class="tab-content">
-        <h2>User Management (Admin Panel)</h2>
-        <form id="addUserForm" onsubmit="addNewUser(event)" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px;">
-            <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New System User</h3>
-            <div class="form-group">
-                <label>New Username:</label>
-                <input type="text" id="newUsername" required placeholder="Enter username">
-            </div>
-            <div class="form-group">
-                <label>Password:</label>
-                <input type="password" id="newPassword" required placeholder="Enter password">
-            </div>
-            <div class="form-group">
-                <label>User Role:</label>
-                <select id="newUserRole">
-                    <option value="staff">Staff (Can add sales & view stock)</option>
-                    <option value="admin">Admin (Full Control)</option>
-                </select>
-            </div>
-            <button type="submit" style="background-color: var(--primary);">Create User Account</button>
-        </form>
-
-        <h3>Existing System Users</h3>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody"></tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
-<!-- Printable Invoice Template -->
+<!-- Beautiful Printable Invoice Template Container -->
 <div id="printableReport">
+    <!-- Invoice Header -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #4f46e5; padding-bottom: 15px; margin-bottom: 25px;">
         <div>
-            <h2 id="invoiceTitle" style="margin: 0; color: #4f46e5; font-size: 24px;">SALES INVOICE</h2>
-            <p id="invoiceSubtitle" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;"></p>
+            <h2 id="invoiceTitle" style="margin: 0; color: #4f46e5; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">SALES INVOICE / REPORT</h2>
+            <p id="invoiceSubtitle" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; font-weight: 500;"></p>
         </div>
         <div style="text-align: right;">
-            <p style="margin: 0; font-weight: 700; font-size: 15px;">Inventory & Sales System</p>
+            <p style="margin: 0; font-weight: 700; font-size: 15px; color: #1e293b;">Inventory & Sales System</p>
             <p id="invoiceGeneratedDate" style="margin: 3px 0 0 0; color: #64748b; font-size: 12px;"></p>
         </div>
     </div>
+
+    <!-- Invoice Table -->
     <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white;">
         <thead>
             <tr style="background-color: #4f46e5; color: white;">
-                <th style="padding: 12px 14px; font-size: 13px;">Date</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Category</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Item Name</th>
-                <th style="padding: 12px 14px; font-size: 13px;">Color</th>
-                <th style="padding: 12px 14px; font-size: 13px; text-align: right;">Qty Sold</th>
+                <th style="padding: 12px 14px; font-size: 13px; font-weight: 600; border-top-left-radius: 6px; border-bottom-left-radius: 6px;">Date</th>
+                <th style="padding: 12px 14px; font-size: 13px; font-weight: 600;">Category</th>
+                <th style="padding: 12px 14px; font-size: 13px; font-weight: 600;">Item Name</th>
+                <th style="padding: 12px 14px; font-size: 13px; font-weight: 600;">Color</th>
+                <th style="padding: 12px 14px; font-size: 13px; font-weight: 600; text-align: right; border-top-right-radius: 6px; border-bottom-right-radius: 6px;">Qty Sold</th>
             </tr>
         </thead>
-        <tbody id="invoiceTableBody"></tbody>
+        <tbody id="invoiceTableBody">
+            <!-- Data will load dynamically -->
+        </tbody>
     </table>
+
+    <!-- Invoice Summary Totals Box -->
     <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
-        <div style="width: 280px; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <div style="width: 280px; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: #64748b;">
-                <span>Total Varieties:</span>
+                <span>Total Item Varieties:</span>
                 <span id="invTotalVarieties" style="font-weight: 600; color: #1e293b;">0</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #1e293b; border-top: 2px solid #cbd5e1; padding-top: 10px;">
-                <span>Total Qty Sold:</span>
+                <span>Total Quantity Sold:</span>
                 <span id="invTotalQtySold" style="color: #4f46e5;">0</span>
             </div>
         </div>
     </div>
+
+    <!-- Invoice Footer Note -->
+    <div style="margin-top: 50px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; color: #94a3b8; font-size: 12px;">
+        <p style="margin: 0;">Thank you for using Inventory & Sales Management System. Computer generated invoice.</p>
+    </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyB2wBOEPv0ceGY_dZ864y18BepjDcog3AI",
-        authDomain: "zenzul.firebaseapp.com",
-        databaseURL: "https://zenzul-default-rtdb.firebaseio.com/",
-        projectId: "zenzul",
-        storageBucket: "zenzul.firebasestorage.app",
-        messagingSenderId: "987784236660",
-        appId: "1:987784236660:web:20486d1c7cc3f02b464b21",
-        measurementId: "G-EPVSRR342Q"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
     let lowStockDismissed = false;
-    let inventory = [];
-    let sales = [];
-    let users = [];
 
+    // Check Login State on Page Load
     window.onload = function() {
-        // Realtime sync from Firebase
-        db.ref('inventory').on('value', (snapshot) => {
-            inventory = snapshot.val() || [];
-            updateUI();
-        });
-
-        db.ref('sales').on('value', (snapshot) => {
-            sales = snapshot.val() || [];
-            updateUI();
-        });
-
-        db.ref('users').on('value', (snapshot) => {
-            let val = snapshot.val();
-            if (!val) {
-                // Initialize default admin if no users exist
-                users = [{ username: 'Pramod', password: '12345', role: 'admin' }];
-                db.ref('users').set(users);
-            } else {
-                users = val;
-            }
-            checkLoginSession();
-        });
-    };
-
-    function checkLoginSession() {
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainSystemContainer').style.display = 'block';
-            applyRolePermissions();
+            updateUI();
         } else {
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('mainSystemContainer').style.display = 'none';
         }
-    }
+    };
 
     function handleLogin(e) {
         e.preventDefault();
@@ -656,13 +635,10 @@
         const p = document.getElementById('loginPass').value.trim();
         const errEl = document.getElementById('loginError');
 
-        const foundUser = users.find(usr => usr.username === u && usr.password === p);
-
-        if (foundUser) {
+        if (u === 'chanuka' && p === '12345') {
             sessionStorage.setItem('isLoggedIn', 'true');
-            sessionStorage.setItem('currentUsername', foundUser.username);
-            sessionStorage.setItem('currentUserRole', foundUser.role);
-            checkLoginSession();
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainSystemContainer').style.display = 'block';
             updateUI();
         } else {
             errEl.innerText = "Invalid Username or Password!";
@@ -671,38 +647,25 @@
     }
 
     function logout() {
-        sessionStorage.clear();
+        sessionStorage.removeItem('isLoggedIn');
         location.reload();
     }
 
-    function applyRolePermissions() {
-        const role = sessionStorage.getItem('currentUserRole');
-        const username = sessionStorage.getItem('currentUsername');
-        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${role.toUpperCase()})`;
-
-        if (role === 'admin') {
-            document.getElementById('userTabBtn').style.display = 'block';
-        } else {
-            document.getElementById('userTabBtn').style.display = 'none';
-        }
-    }
-
+    // Password Verification Helper Function for editing/deleting items
     function verifyPassword() {
-        const role = sessionStorage.getItem('currentUserRole');
-        if (role === 'admin') return true;
-
-        let password = prompt("Staff members cannot perform this action. Enter Admin password to proceed:");
-        if (password === null) return false;
-        
-        const adminUser = users.find(u => u.role === 'admin' && u.password === password);
-        if (adminUser) {
+        let password = prompt("Enter password (123) to proceed:");
+        if (password === null) {
+            return false;
+        }
+        if (password === "123") {
             return true;
         } else {
-            alert("Incorrect Admin password! Permission denied.");
+            alert("Incorrect password! Access denied.");
             return false;
         }
     }
 
+    // Tab switching function
     function openTab(evt, tabName) {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tab-content");
@@ -717,28 +680,35 @@
         evt.currentTarget.className += " active";
     }
 
+    // Color picker helper functions
     function selectPreset(hex, name) {
         document.getElementById('itemColorHex').value = hex;
         document.getElementById('itemColorName').value = name;
     }
 
-    function syncColorPicker() {}
+    function syncColorPicker() {
+        // Optional helper
+    }
 
+    // Load data from LocalStorage
+    let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+    let sales = JSON.parse(localStorage.getItem('sales')) || [];
+
+    // Set default today date to inputs
     document.getElementById('saleDate').valueAsDate = new Date();
     document.getElementById('pdfReportDate').valueAsDate = new Date();
 
     function saveToStorage() {
-        db.ref('inventory').set(inventory);
-        db.ref('sales').set(sales);
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        localStorage.setItem('sales', JSON.stringify(sales));
     }
 
-    function saveUsersToStorage() {
-        db.ref('users').set(users);
-    }
-
+    // Backup & Restore Functions
     function exportBackupData() {
-        if (!verifyPassword()) return;
-        const data = { inventory: inventory, sales: sales, users: users };
+        const data = {
+            inventory: inventory,
+            sales: sales
+        };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
@@ -749,7 +719,6 @@
     }
 
     function importBackupData(event) {
-        if (!verifyPassword()) return;
         const file = event.target.files[0];
         if (!file) return;
 
@@ -758,15 +727,13 @@
             try {
                 const parsedData = JSON.parse(e.target.result);
                 if (parsedData.inventory && parsedData.sales) {
-                    if (confirm("Are you sure you want to restore this data?")) {
+                    if (confirm("Are you sure you want to restore this data? Existing current data will be overwritten.")) {
                         inventory = parsedData.inventory;
                         sales = parsedData.sales;
-                        if (parsedData.users) users = parsedData.users;
                         saveToStorage();
-                        saveUsersToStorage();
                         lowStockDismissed = false;
                         updateUI();
-                        alert("Data successfully restored!");
+                        alert("Data successfully restored from backup file!");
                     }
                 } else {
                     alert("Invalid backup file format!");
@@ -779,6 +746,7 @@
         reader.readAsText(file);
     }
 
+    // Check low stock and manage popup banner
     function checkLowStock() {
         const lowStockItems = inventory.filter(item => item.qty <= 10);
         const banner = document.getElementById('lowStockBanner');
@@ -826,26 +794,47 @@
         alert('Item successfully added!');
     }
 
+    // Inventory Inline Edit & Delete (With Password Protection)
     function startInlineEdit(index) {
         if (!verifyPassword()) return;
-        document.querySelectorAll(`.view-mode-${index}`).forEach(el => el.style.display = 'none');
-        document.querySelectorAll(`.edit-mode-${index}`).forEach(el => el.style.display = 'inline-block');
+
+        const viewElements = document.querySelectorAll(`.view-mode-${index}`);
+        viewElements.forEach(el => el.style.display = 'none');
+
+        const editElements = document.querySelectorAll(`.edit-mode-${index}`);
+        editElements.forEach(el => el.style.display = 'inline-block');
+
         document.getElementById(`edit-btn-${index}`).style.display = 'none';
         document.getElementById(`delete-btn-${index}`).style.display = 'none';
         document.getElementById(`save-btn-${index}`).style.display = 'inline-block';
         document.getElementById(`cancel-btn-${index}`).style.display = 'inline-block';
     }
 
-    function cancelInlineEdit(index) { updateUI(); }
+    function cancelInlineEdit(index) {
+        updateUI();
+    }
 
     function saveInlineEdit(index) {
         const newCategory = document.getElementById(`edit-cat-${index}`).value.trim();
         const newName = document.getElementById(`edit-name-${index}`).value.trim();
         const newColorName = document.getElementById(`edit-colorName-${index}`).value.trim();
         const newColorHex = document.getElementById(`edit-colorHex-${index}`).value;
-        const newQty = parseInt(document.getElementById(`edit-qty-${index}`).value);
+        const newQtyStr = document.getElementById(`edit-qty-${index}`).value;
 
-        inventory[index] = { category: newCategory, name: newName, colorName: newColorName, colorHex: newColorHex, qty: newQty };
+        const newQty = parseInt(newQtyStr);
+        if (!newCategory || !newName || !newColorName || isNaN(newQty) || newQty < 0) {
+            alert("Please fill all fields with valid values.");
+            return;
+        }
+
+        inventory[index] = {
+            category: newCategory,
+            name: newName,
+            colorName: newColorName,
+            colorHex: newColorHex,
+            qty: newQty
+        };
+
         lowStockDismissed = false;
         saveToStorage();
         updateUI();
@@ -854,106 +843,164 @@
 
     function deleteItem(index) {
         if (!verifyPassword()) return;
-        if (confirm("Are you sure you want to remove this item?")) {
+
+        const item = inventory[index];
+        const itemName = item ? `${item.category} - ${item.name} (${item.colorName || item.color || 'Custom'})` : 'this item';
+        
+        if (confirm(`Are you sure you want to remove "${itemName}" from inventory?`)) {
             inventory.splice(index, 1);
             lowStockDismissed = false;
             saveToStorage();
             updateUI();
-            alert("Item removed!");
+            alert("Item removed successfully!");
         }
     }
 
+    // Sales Inline Edit & Delete (With Password Protection)
     function startSaleInlineEdit(index) {
         if (!verifyPassword()) return;
-        document.querySelectorAll(`.view-sale-${index}`).forEach(el => el.style.display = 'none');
-        document.querySelectorAll(`.edit-sale-${index}`).forEach(el => el.style.display = 'inline-block');
+
+        const viewElements = document.querySelectorAll(`.view-sale-${index}`);
+        viewElements.forEach(el => el.style.display = 'none');
+
+        const editElements = document.querySelectorAll(`.edit-sale-${index}`);
+        editElements.forEach(el => el.style.display = 'inline-block');
+
         document.getElementById(`edit-sale-btn-${index}`).style.display = 'none';
         document.getElementById(`delete-sale-btn-${index}`).style.display = 'none';
         document.getElementById(`save-sale-btn-${index}`).style.display = 'inline-block';
         document.getElementById(`cancel-sale-btn-${index}`).style.display = 'inline-block';
     }
 
-    function cancelSaleInlineEdit(index) { updateUI(); }
+    function cancelSaleInlineEdit(index) {
+        updateUI();
+    }
 
     function saveSaleInlineEdit(index) {
         const newDate = document.getElementById(`edit-sale-date-${index}`).value;
-        const newQty = parseInt(document.getElementById(`edit-sale-qty-${index}`).value);
+        const newQtyStr = document.getElementById(`edit-sale-qty-${index}`).value;
+        const newQty = parseInt(newQtyStr);
+
+        if (!newDate || isNaN(newQty) || newQty < 1) {
+            alert("Please provide a valid date and quantity.");
+            return;
+        }
+
         const sale = sales[index];
-        const qtyDiff = newQty - sale.qty;
+        const oldQty = sale.qty;
+        const qtyDiff = newQty - oldQty;
 
         const invItem = inventory.find(i => 
             i.category.toLowerCase() === sale.category.toLowerCase() && 
-            i.name.toLowerCase() === sale.name.toLowerCase()
+            i.name.toLowerCase() === sale.name.toLowerCase() && 
+            (i.colorName || i.color || 'Custom').toLowerCase() === (sale.colorName || sale.color || 'Custom').toLowerCase()
         );
 
         if (qtyDiff > 0) {
             if (!invItem || invItem.qty < qtyDiff) {
-                alert(`Not enough stock! Available: ${invItem ? invItem.qty : 0}`);
+                alert(`Not enough stock in inventory to increase sale by ${qtyDiff}! Available stock: ${invItem ? invItem.qty : 0}`);
                 return;
             }
             invItem.qty -= qtyDiff;
-        } else if (qtyDiff < 0 && invItem) {
-            invItem.qty += Math.abs(qtyDiff);
+        } else if (qtyDiff < 0) {
+            if (invItem) {
+                invItem.qty += Math.abs(qtyDiff);
+            }
         }
 
         sale.date = newDate;
         sale.qty = newQty;
+
         lowStockDismissed = false;
         saveToStorage();
         updateUI();
-        alert("Sale updated!");
+        alert("Sale record updated successfully!");
     }
 
     function deleteSale(index) {
         if (!verifyPassword()) return;
+
         const sale = sales[index];
-        if (confirm("Remove sale and return qty to stock?")) {
+        if (confirm(`Are you sure you want to remove this sale record (${sale.name} - Qty: ${sale.qty})? This will return the quantity back to inventory.`)) {
             const invItem = inventory.find(i => 
                 i.category.toLowerCase() === sale.category.toLowerCase() && 
-                i.name.toLowerCase() === sale.name.toLowerCase()
+                i.name.toLowerCase() === sale.name.toLowerCase() && 
+                (i.colorName || i.color || 'Custom').toLowerCase() === (sale.colorName || sale.color || 'Custom').toLowerCase()
             );
-            if (invItem) invItem.qty += sale.qty;
+
+            if (invItem) {
+                invItem.qty += sale.qty;
+            }
+
             sales.splice(index, 1);
             lowStockDismissed = false;
             saveToStorage();
             updateUI();
-            alert("Sale removed!");
+            alert("Sale record removed and quantity returned to inventory!");
         }
     }
 
-    function addNewUser(e) {
-        e.preventDefault();
-        if (!verifyPassword()) return;
-
-        const username = document.getElementById('newUsername').value.trim();
-        const password = document.getElementById('newPassword').value.trim();
-        const role = document.getElementById('newUserRole').value;
-
-        if (users.some(u => u.username === username)) {
-            alert("Username already exists!");
+    // Search filter function for Record Sale
+    function filterSaleItems() {
+        const query = document.getElementById('saleItemSearch').value.toLowerCase();
+        const dropdown = document.getElementById('saleSearchDropdown');
+        dropdown.innerHTML = '';
+        
+        if (query.trim() === '') {
+            dropdown.style.display = 'none';
+            document.getElementById('saleItemSelect').value = '';
+            updateSaleColorPreview();
             return;
         }
 
-        users.push({ username, password, role });
-        saveUsersToStorage();
-        updateUI();
-        document.getElementById('addUserForm').reset();
-        alert("New user account created successfully!");
-    }
+        const filtered = inventory.map((item, index) => ({ item, index })).filter(({ item }) => {
+            if (item.qty <= 0) return false;
+            let cName = item.colorName || item.color || 'Custom';
+            let text = `${item.category} ${item.name} ${cName}`.toLowerCase();
+            return text.includes(query);
+        });
 
-    function deleteUser(index) {
-        if (!verifyPassword()) return;
-        if (users[index].username === 'Pramod') {
-            alert("Main Admin account cannot be deleted!");
+        if (filtered.length === 0) {
+            dropdown.innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 13px; text-align: center;">No items found</div>`;
+            dropdown.style.display = 'block';
             return;
         }
-        if (confirm(`Delete user "${users[index].username}"?`)) {
-            users.splice(index, 1);
-            saveUsersToStorage();
-            updateUI();
-            alert("User deleted!");
-        }
+
+        filtered.forEach(({ item, index }) => {
+            let cName = item.colorName || item.color || 'Custom';
+            let div = document.createElement('div');
+            div.style.padding = '10px 14px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #f1f5f9';
+            div.style.fontSize = '13px';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.justifyContent = 'space-between';
+            div.innerHTML = `
+                <span><b>${item.category}</b> &gt; ${item.name} (${cName})</span>
+                <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: var(--primary);">Left: ${item.qty}</span>
+            `;
+            div.onmouseover = () => div.style.backgroundColor = '#f8fafc';
+            div.onmouseout = () => div.style.backgroundColor = 'white';
+            div.onclick = () => {
+                document.getElementById('saleItemSelect').value = index;
+                document.getElementById('saleItemSearch').value = `[${item.category}] ${item.name} - ${cName}`;
+                dropdown.style.display = 'none';
+                updateSaleColorPreview();
+            };
+            dropdown.appendChild(div);
+        });
+
+        dropdown.style.display = 'block';
     }
+
+    // Close search dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#saleItemSearch') && !e.target.closest('#saleSearchDropdown')) {
+            const dropdown = document.getElementById('saleSearchDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }
+    });
 
     function updateSaleColorPreview() {
         const index = document.getElementById('saleItemSelect').value;
@@ -961,13 +1008,21 @@
         const previewDot = document.getElementById('salePreviewDot');
         const previewText = document.getElementById('salePreviewText');
 
-        if (index === "") { previewBox.style.display = 'none'; return; }
+        if (index === "" || index === undefined) {
+            previewBox.style.display = 'none';
+            return;
+        }
+
         const item = inventory[index];
         if (item) {
-            previewDot.style.backgroundColor = item.colorHex || '#4f46e5';
-            previewText.innerText = `Selected Color: ${item.colorName || item.color || 'Custom'}`;
+            let cName = item.colorName || item.color || 'Custom';
+            let cHex = item.colorHex || '#4f46e5';
+            previewDot.style.backgroundColor = cHex;
+            previewText.innerText = `Selected Color: ${cName}`;
             previewBox.style.display = 'flex';
-        } else { previewBox.style.display = 'none'; }
+        } else {
+            previewBox.style.display = 'none';
+        }
     }
 
     function recordSale(e) {
@@ -976,13 +1031,18 @@
         const qtySold = parseInt(document.getElementById('saleQty').value);
         const date = document.getElementById('saleDate').value;
 
-        if(index === "") return;
+        if(index === "" || index === undefined || inventory[index] === undefined) {
+            alert('Please select a valid item from the search results!');
+            return;
+        }
+
         if(inventory[index].qty < qtySold) {
             alert('Not enough quantity in stock!');
             return;
         }
 
         inventory[index].qty -= qtySold;
+
         sales.push({
             date: date,
             category: inventory[index].category,
@@ -996,16 +1056,20 @@
         saveToStorage();
         updateUI();
         document.getElementById('saleForm').reset();
+        document.getElementById('saleItemSearch').value = '';
+        document.getElementById('saleItemSelect').value = '';
         document.getElementById('saleDate').valueAsDate = new Date();
         document.getElementById('saleColorPreviewBox').style.display = 'none';
-        alert('Sale recorded successfully!');
+        alert('Sale successfully recorded!');
     }
 
     function getColorHTML(cName, cHex) {
+        let name = cName || 'Custom';
+        let hex = cHex || '#4f46e5';
         return `
             <span style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="width: 16px; height: 16px; border-radius: 50%; background-color: ${cHex || '#4f46e5'}; border: 1px solid #cbd5e1; display: inline-block;"></span>
-                <span>${cName || 'Custom'}</span>
+                <span style="width: 16px; height: 16px; border-radius: 50%; background-color: ${hex}; border: 1px solid #cbd5e1; display: inline-block; flex-shrink: 0;"></span>
+                <span>${name}</span>
             </span>
         `;
     }
@@ -1013,8 +1077,6 @@
     function updateUI() {
         const invTable = document.getElementById('inventoryTableBody');
         invTable.innerHTML = '';
-        const saleSelect = document.getElementById('saleItemSelect');
-        saleSelect.innerHTML = '<option value="">-- Select an item --</option>';
 
         inventory.forEach((item, index) => {
             let cName = item.colorName || item.color || 'Custom';
@@ -1033,7 +1095,7 @@
                     <td>
                         <span class="view-mode-${index}">${getColorHTML(cName, cHex)}</span>
                         <div class="edit-mode-${index}" style="display:none; display: flex; gap: 6px; align-items: center;">
-                            <input type="color" id="edit-colorHex-${index}" value="${cHex}" style="width: 40px; height: 32px; padding: 1px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="color" id="edit-colorHex-${index}" value="${cHex}" style="width: 40px; height: 32px; padding: 1px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
                             <input type="text" class="inline-input" id="edit-colorName-${index}" value="${cName}" style="width: 100%;">
                         </div>
                     </td>
@@ -1049,21 +1111,27 @@
                     </td>
                 </tr>
             `;
-            if(item.qty > 0) {
-                saleSelect.innerHTML += `<option value="${index}">[${item.category}] ${item.name} - ${cName} (Remaining: ${item.qty})</option>`;
-            }
         });
 
-        updateSaleColorPreview();
+        // Reset search selection if needed
+        const currentSelectedIdx = document.getElementById('saleItemSelect').value;
+        if(currentSelectedIdx !== "" && inventory[currentSelectedIdx] && inventory[currentSelectedIdx].qty <= 0) {
+            document.getElementById('saleItemSearch').value = '';
+            document.getElementById('saleItemSelect').value = '';
+            document.getElementById('saleColorPreviewBox').style.display = 'none';
+        }
 
         const reportTable = document.getElementById('reportTableBody');
         reportTable.innerHTML = '';
+
         sales.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (sales.length === 0) {
             reportTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No sales recorded yet.</td></tr>`;
         } else {
             sales.forEach((s, index) => {
+                let sColorName = s.colorName || s.color || 'Custom';
+                let sColorHex = s.colorHex || '#4f46e5';
                 reportTable.innerHTML += `
                     <tr>
                         <td>
@@ -1072,7 +1140,7 @@
                         </td>
                         <td>${s.category}</td>
                         <td>${s.name}</td>
-                        <td>${getColorHTML(s.colorName || s.color, s.colorHex)}</td>
+                        <td>${getColorHTML(sColorName, sColorHex)}</td>
                         <td>
                             <span class="view-sale-${index}"><strong>${s.qty}</strong></span>
                             <input type="number" class="edit-sale-${index} inline-input" id="edit-sale-qty-${index}" value="${s.qty}" style="display:none; width:100%;" min="1">
@@ -1088,48 +1156,39 @@
             });
         }
 
-        // Render Users List Table
-        const usersTable = document.getElementById('usersTableBody');
-        usersTable.innerHTML = '';
-        users.forEach((u, index) => {
-            usersTable.innerHTML += `
-                <tr>
-                    <td><strong>${u.username}</strong></td>
-                    <td><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: ${u.role === 'admin' ? '#d1fae5; color: #059669;' : '#f1f5f9; color: #475569;'}">${u.role.toUpperCase()}</span></td>
-                    <td>
-                        ${u.username !== 'Pramod' ? `<button class="btn-delete" onclick="deleteUser(${index})">Delete</button>` : '<span style="font-size: 12px; color: var(--text-muted);">Protected</span>'}
-                    </td>
-                </tr>
-            `;
-        });
-
         checkLowStock();
     }
 
     function downloadDailyPDF() {
         const selectedDate = document.getElementById('pdfReportDate').value;
-        if (!selectedDate) { alert('Please select a date first!'); return; }
+        if (!selectedDate) {
+            alert('Please select a date first!');
+            return;
+        }
 
         const filteredSales = sales.filter(s => s.date === selectedDate);
         const invoiceTableBody = document.getElementById('invoiceTableBody');
         invoiceTableBody.innerHTML = '';
 
-        document.getElementById('invoiceTitle').innerText = `SALES INVOICE`;
-        document.getElementById('invoiceSubtitle').innerText = `Date: ${selectedDate}`;
-        document.getElementById('invoiceGeneratedDate').innerText = `Generated: ${new Date().toLocaleDateString()}`;
+        document.getElementById('invoiceTitle').innerText = `SALES INVOICE / REPORT`;
+        document.getElementById('invoiceSubtitle').innerText = `Date of Sale: ${selectedDate}`;
+        document.getElementById('invoiceGeneratedDate').innerText = `Generated on: ${new Date().toLocaleDateString()}`;
 
         let totalQty = 0;
+
         if (filteredSales.length === 0) {
             invoiceTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No sales recorded for this date.</td></tr>`;
         } else {
             filteredSales.forEach((s) => {
+                let sColorName = s.colorName || s.color || 'Custom';
+                let sColorHex = s.colorHex || '#4f46e5';
                 totalQty += s.qty;
                 invoiceTableBody.innerHTML += `
                     <tr style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px 14px; font-size: 13px;">${s.date}</td>
                         <td style="padding: 12px 14px; font-size: 13px;">${s.category}</td>
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.name}</td>
-                        <td style="padding: 12px 14px; font-size: 13px;">${s.colorName || s.color || 'Custom'}</td>
+                        <td style="padding: 12px 14px; font-size: 13px; font-weight: 500;">${s.name}</td>
+                        <td style="padding: 12px 14px; font-size: 13px;">${getColorHTML(sColorName, sColorHex)}</td>
                         <td style="padding: 12px 14px; font-size: 13px; text-align: right; font-weight: 600;">${s.qty}</td>
                     </tr>
                 `;
@@ -1138,6 +1197,7 @@
 
         document.getElementById('invTotalVarieties').innerText = filteredSales.length;
         document.getElementById('invTotalQtySold').innerText = totalQty;
+
         window.print();
         updateUI();
     }
