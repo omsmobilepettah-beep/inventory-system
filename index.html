@@ -810,20 +810,33 @@
             updateUI();
         });
 
-        // Reset database to contain ONLY Pramod Admin
+        // Fixed Users Retrieval Logic
         db.ref('users').on('value', (snapshot) => {
-            const defaultUser = [{ username: 'Pramod', password: '2026', role: 'admin' }];
-            let val = snapshot.val() || [];
+            const rawVal = snapshot.val();
+            let parsedUsers = [];
 
-            // If users array has non-Pramod users or is empty, reset it strictly to Pramod only
-            if (val.length !== 1 || val[0].username.toLowerCase() !== 'pramod') {
-                db.ref('users').set(defaultUser);
-                users = defaultUser;
-            } else {
-                users = val;
+            if (rawVal) {
+                if (Array.isArray(rawVal)) {
+                    parsedUsers = rawVal.filter(u => u !== null && u !== undefined);
+                } else if (typeof rawVal === 'object') {
+                    parsedUsers = Object.keys(rawVal).map(key => ({
+                        firebaseKey: key,
+                        ...rawVal[key]
+                    }));
+                }
             }
 
+            // Guarantee Pramod is present as Main Admin
+            const hasPramod = parsedUsers.some(u => u.username && u.username.toLowerCase() === 'pramod');
+            if (!hasPramod) {
+                const defaultPramod = { username: 'Pramod', password: '2026', role: 'admin' };
+                db.ref('users').push(defaultPramod);
+                parsedUsers.push(defaultPramod);
+            }
+
+            users = parsedUsers;
             checkLoginSession();
+            updateUI();
         });
     };
 
@@ -850,7 +863,7 @@
         const p = document.getElementById('loginPass').value.trim();
         const errEl = document.getElementById('loginError');
 
-        const foundUser = users.find(usr => usr.username.toLowerCase() === u.toLowerCase() && usr.password === p);
+        const foundUser = users.find(usr => usr.username && usr.username.toLowerCase() === u.toLowerCase() && usr.password === p);
 
         if (foundUser) {
             sessionStorage.setItem('isLoggedIn', 'true');
@@ -898,7 +911,7 @@
         let password = prompt("Action Restricted: Only 'Pramod' Admin can perform this. Enter Pramod's password:");
         if (password === null) return false;
         
-        const pramodUser = users.find(u => u.username.toLowerCase() === 'pramod' && u.password === password);
+        const pramodUser = users.find(u => u.username && u.username.toLowerCase() === 'pramod' && u.password === password);
         if (pramodUser) {
             return true;
         } else {
@@ -961,10 +974,6 @@
         db.ref('salesInvoices').set(salesInvoices);
     }
 
-    function saveUsersToStorage() {
-        db.ref('users').set(users);
-    }
-
     function exportBackupData() {
         if (!verifyPramodAdminPassword()) return;
         const data = { inventory: inventory, salesInvoices: salesInvoices, users: users };
@@ -990,9 +999,10 @@
                     if (confirm("Are you sure you want to restore this data?")) {
                         inventory = parsedData.inventory;
                         salesInvoices = parsedData.salesInvoices || [];
-                        if (parsedData.users) users = parsedData.users;
+                        if (parsedData.users) {
+                            db.ref('users').set(parsedData.users);
+                        }
                         saveToStorage();
-                        saveUsersToStorage();
                         lowStockDismissed = false;
                         updateUI();
                         alert("Data successfully restored!");
@@ -1304,6 +1314,7 @@
         }
     }
 
+    // Direct Firebase Push for Instant & Reliable User Additions
     function addNewUser(e) {
         e.preventDefault();
         if (!verifyPramodAdminPassword()) return;
@@ -1312,31 +1323,38 @@
         const password = document.getElementById('newPassword').value.trim();
         const role = document.getElementById('newUserRole').value;
 
-        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        if (users.some(u => u.username && u.username.toLowerCase() === username.toLowerCase())) {
             alert("Username already exists!");
             return;
         }
 
-        users.push({ username, password, role });
-        saveUsersToStorage();
-        updateUI();
-        document.getElementById('addUserForm').reset();
-        alert("New user account created successfully!");
+        const newUserObj = { username, password, role };
+        db.ref('users').push(newUserObj, (error) => {
+            if (error) {
+                alert("Failed to save user in database!");
+            } else {
+                document.getElementById('addUserForm').reset();
+                alert("New user account created successfully!");
+            }
+        });
     }
 
     function deleteUser(index) {
         if (!verifyPramodAdminPassword()) return;
 
         const targetUser = users[index];
-        if (targetUser.username.toLowerCase() === 'pramod') {
+        if (targetUser.username && targetUser.username.toLowerCase() === 'pramod') {
             alert("Main Admin account (Pramod) cannot be deleted!");
             return;
         }
 
         if (confirm(`Are you sure you want to delete user "${targetUser.username}"?`)) {
-            users.splice(index, 1);
-            saveUsersToStorage();
-            updateUI();
+            if (targetUser.firebaseKey) {
+                db.ref('users/' + targetUser.firebaseKey).remove();
+            } else {
+                users.splice(index, 1);
+                db.ref('users').set(users);
+            }
             alert("User deleted successfully!");
         }
     }
@@ -1418,6 +1436,7 @@
         const usersTable = document.getElementById('usersTableBody');
         usersTable.innerHTML = '';
         users.forEach((u, index) => {
+            if (!u || !u.username) return;
             let roleFormatted = u.role ? u.role.replace('_', ' ').toUpperCase() : 'STAFF';
             usersTable.innerHTML += `
                 <tr>
