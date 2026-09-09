@@ -695,7 +695,7 @@
         </div>
     </div>
 
-    <!-- Tab 4: User Management -->
+    <!-- Tab 4: User Management (Exclusive to Pramod Account) -->
     <div id="UserManagementTab" class="tab-content">
         <h2>User Management (Admin Panel)</h2>
         <form id="addUserForm" onsubmit="addNewUser(event)" style="background: #fafaf9; padding: 14px; border-radius: 10px; border: 1px solid #e7e5e4; margin-bottom: 15px;">
@@ -709,11 +709,12 @@
                     <label>Password:</label>
                     <input type="password" id="newPassword" required placeholder="Password">
                 </div>
-                <div class="form-group" style="flex: 1; min-width: 140px; margin-bottom: 0;">
+                <div class="form-group" style="flex: 1; min-width: 160px; margin-bottom: 0;">
                     <label>User Role:</label>
                     <select id="newUserRole">
                         <option value="staff">Staff (Sales/Stock View)</option>
-                        <option value="admin">Admin (Full Control)</option>
+                        <option value="product_manager">Product Manager (Add/Edit Products)</option>
+                        <option value="admin">Admin (Full System Control)</option>
                     </select>
                 </div>
             </div>
@@ -809,21 +810,19 @@
             updateUI();
         });
 
+        // Reset database to contain ONLY Pramod Admin
         db.ref('users').on('value', (snapshot) => {
+            const defaultUser = [{ username: 'Pramod', password: '2026', role: 'admin' }];
             let val = snapshot.val() || [];
-            
-            let chanukaIndex = val.findIndex(u => u.username.toLowerCase() === 'chanuka');
-            if (chanukaIndex !== -1) {
-                val[chanukaIndex].username = 'Pramod';
-                val[chanukaIndex].password = '2026';
-                val[chanukaIndex].role = 'admin';
-                db.ref('users').set(val);
-            } else if (val.length === 0 || !val.some(u => u.username.toLowerCase() === 'pramod')) {
-                val.push({ username: 'Pramod', password: '2026', role: 'admin' });
-                db.ref('users').set(val);
+
+            // If users array has non-Pramod users or is empty, reset it strictly to Pramod only
+            if (val.length !== 1 || val[0].username.toLowerCase() !== 'pramod') {
+                db.ref('users').set(defaultUser);
+                users = defaultUser;
+            } else {
+                users = val;
             }
 
-            users = val;
             checkLoginSession();
         });
     };
@@ -873,31 +872,53 @@
     function applyRolePermissions() {
         const role = sessionStorage.getItem('currentUserRole');
         const username = sessionStorage.getItem('currentUsername');
-        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${role ? role.toUpperCase() : ''})`;
+        
+        let roleDisplay = role ? role.replace('_', ' ').toUpperCase() : '';
+        document.getElementById('loggedUserInfo').innerText = `Logged in as: ${username} (${roleDisplay})`;
 
         const addProductBtn = document.getElementById('adminAddProductBtn');
 
-        if (role === 'admin') {
+        if (username && username.toLowerCase() === 'pramod') {
             document.getElementById('userTabBtn').style.display = 'block';
-            if (addProductBtn) addProductBtn.style.display = 'inline-flex';
         } else {
             document.getElementById('userTabBtn').style.display = 'none';
+        }
+
+        if (role === 'admin' || role === 'product_manager') {
+            if (addProductBtn) addProductBtn.style.display = 'inline-flex';
+        } else {
             if (addProductBtn) addProductBtn.style.display = 'none';
         }
     }
 
-    function verifyPassword() {
-        const role = sessionStorage.getItem('currentUserRole');
-        if (role === 'admin') return true;
+    function verifyPramodAdminPassword() {
+        const username = sessionStorage.getItem('currentUsername');
+        if (username && username.toLowerCase() === 'pramod') return true;
 
-        let password = prompt("Staff members cannot perform this action. Enter Admin password to proceed:");
+        let password = prompt("Action Restricted: Only 'Pramod' Admin can perform this. Enter Pramod's password:");
         if (password === null) return false;
         
-        const adminUser = users.find(u => u.role === 'admin' && u.password === password);
-        if (adminUser) {
+        const pramodUser = users.find(u => u.username.toLowerCase() === 'pramod' && u.password === password);
+        if (pramodUser) {
             return true;
         } else {
-            alert("Incorrect Admin password! Permission denied.");
+            alert("Incorrect password for Pramod! Permission denied.");
+            return false;
+        }
+    }
+
+    function verifyProductPermission() {
+        const role = sessionStorage.getItem('currentUserRole');
+        if (role === 'admin' || role === 'product_manager') return true;
+
+        let password = prompt("Staff members cannot perform this action. Enter Admin/Product Manager password:");
+        if (password === null) return false;
+        
+        const authUser = users.find(u => (u.role === 'admin' || u.role === 'product_manager') && u.password === password);
+        if (authUser) {
+            return true;
+        } else {
+            alert("Incorrect password! Permission denied.");
             return false;
         }
     }
@@ -918,8 +939,8 @@
 
     function openAddProductModal() { 
         const role = sessionStorage.getItem('currentUserRole');
-        if (role !== 'admin') {
-            alert('Access Denied: Only Admins can add new products.');
+        if (role !== 'admin' && role !== 'product_manager') {
+            alert('Access Denied: You do not have permission to add new products.');
             return;
         }
         document.getElementById('addProductModal').style.display = 'flex'; 
@@ -945,7 +966,7 @@
     }
 
     function exportBackupData() {
-        if (!verifyPassword()) return;
+        if (!verifyPramodAdminPassword()) return;
         const data = { inventory: inventory, salesInvoices: salesInvoices, users: users };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
         const downloadAnchor = document.createElement('a');
@@ -957,7 +978,7 @@
     }
 
     function importBackupData(event) {
-        if (!verifyPassword()) return;
+        if (!verifyPramodAdminPassword()) return;
         const file = event.target.files[0];
         if (!file) return;
 
@@ -1009,8 +1030,8 @@
     function addItem(e) {
         e.preventDefault();
         const role = sessionStorage.getItem('currentUserRole');
-        if (role !== 'admin') {
-            alert('Access Denied: Only Admins can add new products.');
+        if (role !== 'admin' && role !== 'product_manager') {
+            alert('Access Denied: You do not have permission to add new products.');
             return;
         }
 
@@ -1229,7 +1250,7 @@
     }
 
     function deleteInvoice(index) {
-        if (!verifyPassword()) return;
+        if (!verifyPramodAdminPassword()) return;
         const inv = salesInvoices[index];
         if (confirm(`Remove Invoice ${inv.invoiceId} and return item quantities to stock?`)) {
             inv.items.forEach(s => {
@@ -1247,7 +1268,7 @@
     }
 
     function startInlineEdit(index) {
-        if (!verifyPassword()) return;
+        if (!verifyProductPermission()) return;
         document.querySelectorAll(`.view-mode-${index}`).forEach(el => el.style.display = 'none');
         document.querySelectorAll(`.edit-mode-${index}`).forEach(el => el.style.display = 'inline-block');
         document.getElementById(`edit-btn-${index}`).style.display = 'none';
@@ -1273,7 +1294,7 @@
     }
 
     function deleteItem(index) {
-        if (!verifyPassword()) return;
+        if (!verifyProductPermission()) return;
         if (confirm("Are you sure you want to remove this item?")) {
             inventory.splice(index, 1);
             lowStockDismissed = false;
@@ -1285,7 +1306,7 @@
 
     function addNewUser(e) {
         e.preventDefault();
-        if (!verifyPassword()) return;
+        if (!verifyPramodAdminPassword()) return;
 
         const username = document.getElementById('newUsername').value.trim();
         const password = document.getElementById('newPassword').value.trim();
@@ -1304,18 +1325,19 @@
     }
 
     function deleteUser(index) {
-        if (!verifyPassword()) return;
+        if (!verifyPramodAdminPassword()) return;
 
-        if (users[index].username.toLowerCase() === 'pramod') {
+        const targetUser = users[index];
+        if (targetUser.username.toLowerCase() === 'pramod') {
             alert("Main Admin account (Pramod) cannot be deleted!");
             return;
         }
 
-        if (confirm(`Delete user "${users[index].username}"?`)) {
+        if (confirm(`Are you sure you want to delete user "${targetUser.username}"?`)) {
             users.splice(index, 1);
             saveUsersToStorage();
             updateUI();
-            alert("User deleted!");
+            alert("User deleted successfully!");
         }
     }
 
@@ -1396,12 +1418,13 @@
         const usersTable = document.getElementById('usersTableBody');
         usersTable.innerHTML = '';
         users.forEach((u, index) => {
+            let roleFormatted = u.role ? u.role.replace('_', ' ').toUpperCase() : 'STAFF';
             usersTable.innerHTML += `
                 <tr>
                     <td><strong>${u.username}</strong></td>
-                    <td><span style="padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: ${u.role === 'admin' ? '#fef3c7; color: #92400e;' : '#f3f4f6; color: #44403c;'}">${u.role.toUpperCase()}</span></td>
+                    <td><span style="padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: ${u.role === 'admin' ? '#fef3c7; color: #92400e;' : (u.role === 'product_manager' ? '#e0f2fe; color: #0369a1;' : '#f3f4f6; color: #44403c;')}">${roleFormatted}</span></td>
                     <td>
-                        ${u.username.toLowerCase() !== 'pramod' ? `<button class="btn-delete" onclick="deleteUser(${index})">Delete</button>` : '<span style="font-size: 11px; color: #78716c;">Protected</span>'}
+                        ${u.username.toLowerCase() !== 'pramod' ? `<button class="btn-delete" onclick="deleteUser(${index})">Remove User</button>` : '<span style="font-size: 11px; color: #78716c; font-weight: 600;">Main Admin (Protected)</span>'}
                     </td>
                 </tr>
             `;
